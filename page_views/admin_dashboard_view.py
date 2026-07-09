@@ -1,191 +1,216 @@
 # -*- coding: utf-8 -*-
 """
-AIZS 管理端 - 数据看板视图
+AIZS 管理端 - 运营数据仪表盘
+重构版：使用主题管理器和组件库提供企业级用户体验。
 """
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from services.analytics_service import AnalyticsService
-from utils.display_utils import format_percent, safe_text
-from utils.ui_utils import render_page_header, render_empty_state, render_metric_card
+from utils.ui_utils import render_page_header, render_empty_state
+from themes.theme_manager import theme_manager
+
+theme = theme_manager.current_theme
+colors = theme["colors"]
+spacing = theme["spacing"]
+typography = theme["typography"]
+radius = theme["radius"]
+
 
 @st.cache_resource
 def get_analytics_service():
     return AnalyticsService()
 
+
+def _render_metric_card(label, value, delta=None, delta_color="normal"):
+    """渲染自定义指标卡片。"""
+    delta_html = ""
+    if delta is not None:
+        delta_style = "color:#2ecc71" if delta_color == "normal" else "color:#e74c3c"
+        delta_html = f'<div style="{delta_style};font-size:{typography["font_size_sm"]};margin-top:{spacing["spacing_xxs"]};">{delta}</div>'
+    
+    st.markdown(f"""
+    <div style="background:{colors['bg_card']};border-radius:{radius['radius_lg']};padding:{spacing['spacing_base']};
+                box-shadow:{colors['shadow_card']};text-align:center;">
+        <div style="font-size:{typography['font_size_xs']};color:{colors['text_tertiary']};text-transform:uppercase;letter-spacing:0.5px;">{label}</div>
+        <div style="font-size:2rem;font-weight:{typography['font_weight_bold']};color:{colors['text_primary']};margin-top:{spacing['spacing_xxs']};">{value}</div>
+        {delta_html}
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render():
     analytics_service = get_analytics_service()
 
     render_page_header(
-        "📊 AIZS 运营数据看板",
-        "实时统计并展示 AIZS 校园智能咨询系统的整体运行指标、用户提问意图分布、问答频次趋势及低满意度问答日志。"
+        "📊 AIZS 运营数据仪表盘",
+        "实时监控系统运行状态、对话量、知识库命中率及回答质量趋势，帮助管理员及时发现问题并优化系统。"
     )
 
-    metrics = analytics_service.get_summary_metrics()
+    # ── 核心指标卡片 ──
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>📈 核心指标概览</h3>", unsafe_allow_html=True)
+    metrics = analytics_service.get_dashboard_metrics()
+    
+    col1, col2, col3, col4, col5, col6 = st.columns(6, gap="small")
+    with col1: _render_metric_card("总对话数", f"{metrics['total_conversations']}")
+    with col2: _render_metric_card("今日对话", f"{metrics['today_conversations']}", f"+{metrics['today_conversations']}")
+    with col3: _render_metric_card("知识库命中率", f"{metrics['knowledge_hit_rate']:.1f}%")
+    with col4: _render_metric_card("平均响应时间", f"{metrics['avg_response_time_ms']}ms")
+    with col5: _render_metric_card("好评率", f"{metrics['positive_rating_rate']:.1f}%")
+    with col6: _render_metric_card("低质量回答", f"{metrics['low_quality_count']}")
 
-    if not metrics or metrics.get("total_qa_count", 0) == 0:
-        # 空数据状态 - 指标卡片展示为0
-        st.markdown("### 📉 核心运行指标")
-        c1, c2, c3, c4 = st.columns(4)
-        with c1: render_metric_card("总咨询问答量", "0 次")
-        with c2: render_metric_card("总会话数", "0 个")
-        with c3: render_metric_card("知识库文档数", f"{metrics.get('total_doc_count', 0) if metrics else 0} 篇")
-        with c4: render_metric_card("用户满意度", "暂无反馈")
+    # ── 趋势图表区域 ──
+    st.markdown("---")
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>📉 趋势分析</h3>", unsafe_allow_html=True)
+    
+    time_range_options = ["7天", "30天", "90天"]
+    selected_range = st.selectbox("时间范围", time_range_options, index=0, key="dash_time_range")
+    days_map = {"7天": 7, "30天": 30, "90天": 90}
+    days = days_map[selected_range]
 
-        st.markdown("---")
+    trend_data = analytics_service.get_trend_data(days=days)
+
+    if not trend_data:
         render_empty_state(
-            title="暂无运营数据",
-            description="请先导入知识库并进行咨询测试，以生成统计图表。",
-            icon="📊"
+            title="暂无趋势数据",
+            description="系统运行一段时间后将自动生成趋势数据。",
+            icon="📈"
         )
     else:
-        # 核心运行指标卡片
-        st.markdown("### 📉 核心运行指标")
+        df = pd.DataFrame(trend_data)
+        
+        fig = make_subplots(
+            rows=2, cols=2,
+            subplot_titles=(
+                "对话量趋势",
+                "知识库命中率",
+                "平均响应时间",
+                "好评率趋势"
+            ),
+            vertical_spacing=0.15,
+            horizontal_spacing=0.1
+        )
 
-        sat_str = format_percent(metrics["satisfaction_rate"], default="暂无反馈")
-        avg_score_val = metrics.get("average_quality_score")
-        avg_score_str = f"{avg_score_val:.2f} 分" if avg_score_val is not None else "暂无评估"
-        no_source_rate_val = metrics.get("no_source_rate", 0.0) or 0.0
+        fig.add_trace(
+            go.Bar(
+                x=df["date"],
+                y=df["conversation_count"],
+                name="对话量",
+                marker_color=colors["primary"],
+                opacity=0.8
+            ),
+            row=1, col=1
+        )
 
-        c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
-        with c1: render_metric_card("总问答量", f"{metrics.get('total_qa_count', 0)} 次")
-        with c2: render_metric_card("今日问答量", f"{metrics.get('today_qa_count', 0)} 次")
-        with c3: render_metric_card("会话数", f"{metrics.get('total_session_count', 0)} 个")
-        with c4: render_metric_card("文档数", f"{metrics.get('total_doc_count', 0)} 篇")
-        with c5: render_metric_card("满意度", sat_str)
-        with c6: render_metric_card("无来源率", f"{no_source_rate_val:.1f}%")
-        with c7: render_metric_card("平均质量分", avg_score_str)
+        fig.add_trace(
+            go.Line(
+                x=df["date"],
+                y=df["knowledge_hit_rate"],
+                name="命中率",
+                line=dict(color=colors["success"], width=3),
+                yaxis="y2"
+            ),
+            row=1, col=2
+        )
 
-        st.markdown("---")
+        fig.add_trace(
+            go.Line(
+                x=df["date"],
+                y=df["avg_response_time_ms"],
+                name="响应时间",
+                line=dict(color=colors["warning"], width=3)
+            ),
+            row=2, col=1
+        )
 
-        # 图表区域
-        col_chart1, col_chart2 = st.columns(2)
+        fig.add_trace(
+            go.Line(
+                x=df["date"],
+                y=df["positive_rating_rate"],
+                name="好评率",
+                line=dict(color=colors["info"], width=3)
+            ),
+            row=2, col=2
+        )
 
-        with col_chart1:
-            st.markdown("#### 📈 最近 30 天每日问答趋势")
-            df_trend = analytics_service.get_daily_trend(days=30)
-            if df_trend is not None and not df_trend.empty:
-                fig_trend = px.line(
-                    df_trend,
-                    x="date",
-                    y="qa_count",
-                    labels={"date": "日期", "qa_count": "问答次数"},
-                    title="每日咨询问答量变化趋势",
-                    markers=True,
-                    color_discrete_sequence=["#1e3c72"]
-                )
-                fig_trend.update_layout(hovermode="x unified", plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-                fig_trend.update_xaxes(showgrid=True, gridcolor="#f1f2f6")
-                fig_trend.update_yaxes(showgrid=True, gridcolor="#f1f2f6")
-                st.plotly_chart(fig_trend, use_container_width=True)
-            else:
-                render_empty_state(title="暂无趋势数据", description="需要更多问答数据以生成趋势图。", icon="📈")
+        fig.update_layout(
+            height=600,
+            showlegend=False,
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color=colors["text_secondary"])
+        )
 
-        with col_chart2:
-            st.markdown("#### 🎯 用户提问意图分布")
-            df_intent = analytics_service.get_intent_distribution()
-            if df_intent is not None and not df_intent.empty:
-                fig_intent = px.pie(
-                    df_intent,
-                    values="count",
-                    names="intent_name",
-                    title="用户咨询场景意图分布比例",
-                    hole=0.4,
-                    color_discrete_sequence=px.colors.qualitative.Pastel
-                )
-                fig_intent.update_traces(textposition='inside', textinfo='percent+label')
-                st.plotly_chart(fig_intent, use_container_width=True)
-            else:
-                render_empty_state(title="暂无意图分布数据", description="需要更多问答数据以生成意图分布图。", icon="🎯")
+        fig.update_xaxes(
+            gridcolor=colors["border"],
+            title_font=dict(color=colors["text_tertiary"])
+        )
+        
+        fig.update_yaxes(
+            gridcolor=colors["border"],
+            title_font=dict(color=colors["text_tertiary"])
+        )
 
-        st.markdown("---")
+        st.plotly_chart(fig, use_container_width=True)
 
-        # 热门问题与低满意度日志
-        col_table1, col_table2 = st.columns(2)
+    # ── 意图分布 ──
+    st.markdown("---")
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>🎯 意图分布</h3>", unsafe_allow_html=True)
+    
+    intent_dist = analytics_service.get_intent_distribution()
+    
+    if not intent_dist:
+        st.info("暂无意图数据")
+    else:
+        labels = [item["intent_name"] for item in intent_dist]
+        values = [item["count"] for item in intent_dist]
+        
+        fig = go.Figure(data=[go.Pie(
+            labels=labels,
+            values=values,
+            hole=0.5,
+            marker=dict(colors=[colors["primary"], colors["success"], colors["warning"], colors["error"], colors["info"]]),
+            textinfo='label+percent',
+            textfont=dict(color=colors["text_secondary"])
+        )])
+        
+        fig.update_layout(
+            height=350,
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color=colors["text_secondary"])
+        )
+        
+        col_pie, col_list = st.columns([1, 1], gap="small")
+        with col_pie:
+            st.plotly_chart(fig, use_container_width=True)
+        with col_list:
+            st.markdown(f"<h4 style='color:{colors['text_secondary']};'>意图明细</h4>", unsafe_allow_html=True)
+            for item in intent_dist:
+                st.markdown(f"- **{item['intent_name']}**: {item['count']} 次 ({item['percentage']:.1f}%)")
 
-        with col_table1:
-            st.markdown("#### 🔥 热门提问 Top 10")
-            df_top = analytics_service.get_top_questions(limit=10)
-            if df_top is not None and not df_top.empty:
-                fig_top = px.bar(
-                    df_top.iloc[::-1],
-                    x="count",
-                    y="question",
-                    orientation='h',
-                    labels={"count": "提问频次", "question": "咨询问题"},
-                    title="提问频次最高的 Top 10 问题",
-                    color_discrete_sequence=["#1e3c72"]
-                )
-                fig_top.update_layout(yaxis={'categoryorder':'trace'}, margin=dict(l=150))
-                st.plotly_chart(fig_top, use_container_width=True)
-            else:
-                render_empty_state(title="暂无提问数据", description="用户咨询后将在此展示热门问题排行。", icon="🔥")
-
-        with col_table2:
-            st.markdown("#### 👎 低满意度点踩问答日志")
-            df_low = analytics_service.get_low_satisfaction_messages()
-            if df_low is not None and not df_low.empty:
-                st.dataframe(
-                    df_low[["feedback_time", "user_question", "assistant_answer", "comment"]].rename(columns={
-                        "feedback_time": "时间",
-                        "user_question": "用户问题",
-                        "assistant_answer": "客服回答",
-                        "comment": "用户意见"
-                    }),
-                    use_container_width=True,
-                    hide_index=True
-                )
-            else:
-                st.success("✨ **当前暂无点踩或低满意度反馈，系统表现很棒！**")
-
-        st.markdown("---")
-
-        # 低质量问答清单
-        st.markdown("#### ⚠️ 待人工优化低质量问答清单")
-        df_lq = analytics_service.get_low_quality_messages_detail(limit=10)
-        if df_lq is not None and not df_lq.empty:
-            st.dataframe(
-                df_lq[["time", "user_question", "assistant_answer", "score", "issues", "suggestion"]].rename(columns={
-                    "time": "评估时间",
-                    "user_question": "用户问题",
-                    "assistant_answer": "助手回复摘要",
-                    "score": "评估分",
-                    "issues": "缺陷特征",
-                    "suggestion": "改进建议"
-                }),
-                use_container_width=True,
-                hide_index=True
-            )
-        else:
-            st.success("✨ **当前暂无低质量回答记录，系统质量很高！**")
-
-        st.markdown("---")
-
-        # 未命中问题统计
-        st.markdown("#### 🔍 知识库未命中问题统计")
-
-        no_source_rate = analytics_service.get_no_source_rate()
-        no_source_msgs = analytics_service.get_no_source_messages(limit=20)
-
-        cc_ns1, cc_ns2 = st.columns(2)
-        with cc_ns1:
-            ns_rate_val = no_source_rate if no_source_rate is not None else 0.0
-            render_metric_card("无来源回答占比", f"{ns_rate_val:.1f}%")
-        with cc_ns2:
-            ns_count = len(no_source_msgs) if no_source_msgs is not None else 0
-            render_metric_card("无来源回答数量", f"{ns_count} 条")
-
-        df_unanswered = analytics_service.get_unanswered_questions_top(limit=10)
-        if df_unanswered is not None and not df_unanswered.empty:
-            st.markdown("##### 🔥 知识库未命中问题 Top 10")
-            st.caption("💡 建议管理员补充相关资料到知识库，提升系统覆盖率。")
-            st.dataframe(
-                df_unanswered.rename(columns={
-                    "question": "用户提问",
-                    "count": "出现次数"
-                }),
-                use_container_width=True,
-                hide_index=True
-            )
-        else:
-            st.success("✨ **暂无未命中问题，当前知识库覆盖情况较好。**")
+    # ── 低质量问答列表 ──
+    st.markdown("---")
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>⚠️ 近期低质量问答</h3>", unsafe_allow_html=True)
+    
+    low_quality_items = analytics_service.get_recent_low_quality(count=5)
+    
+    if not low_quality_items:
+        st.success("近期没有低质量问答记录，回答质量良好！")
+    else:
+        for item in low_quality_items:
+            with st.expander(f"⏱️ {item['time']} | 评分: {item['score']}分 | {item['user_question'][:30]}..."):
+                st.markdown(f"""
+                <div style="background:{colors['error']}10;border-radius:{radius['radius_base']};padding:{spacing['spacing_base']};margin-bottom:{spacing['spacing_sm']};">
+                    <strong>❓ 用户提问：</strong><br/>
+                    <span style="color:{colors['text_secondary']};">{item['user_question']}</span>
+                </div>
+                <div style="background:{colors['warning']}10;border-radius:{radius['radius_base']};padding:{spacing['spacing_base']};margin-bottom:{spacing['spacing_sm']};">
+                    <strong>🤖 助手回答：</strong><br/>
+                    <span style="color:{colors['text_secondary']};">{item['assistant_answer']}</span>
+                </div>
+                <div style="background:{colors['bg_card']};border-radius:{radius['radius_base']};padding:{spacing['spacing_base']};">
+                    <strong>💡 改进建议：</strong><br/>
+                    <span style="color:{colors['text_secondary']};">{item['suggestion']}</span>
+                </div>
+                """, unsafe_allow_html=True)

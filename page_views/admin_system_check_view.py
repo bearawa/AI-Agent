@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 AIZS 管理端 - 系统自检视图
+重构版：使用主题管理器和组件库提供企业级用户体验。
 """
 import sys
 import os
@@ -8,22 +9,34 @@ import streamlit as st
 from pathlib import Path
 from config import settings
 from utils.display_utils import safe_text
-from utils.ui_utils import render_page_header, render_empty_state, render_metric_card
+from utils.ui_utils import render_page_header, render_empty_state
+from themes.theme_manager import theme_manager
+
+theme = theme_manager.current_theme
+colors = theme["colors"]
+spacing = theme["spacing"]
+typography = theme["typography"]
+radius = theme["radius"]
+
 
 def check_item(name, passed, warning=False, detail="", suggestion=""):
-    """生成单个自检项结果字典。"""
     if passed:
         status = "✅ 正常"
+        status_color = colors["success"]
     elif warning:
         status = "⚠️ 警告"
+        status_color = colors["warning"]
     else:
         status = "❌ 异常"
+        status_color = colors["error"]
     return {
         "检查项": name,
         "状态": status,
+        "状态颜色": status_color,
         "详情": detail,
         "修复建议": suggestion
     }
+
 
 def render():
     render_page_header(
@@ -108,15 +121,14 @@ def render():
         suggestion="从 demo_documents 目录复制示例文档到 data/raw_documents" if not demo_docs_exist else ""
     ))
 
-    # 8. 天气工具模式（可选功能）
-    weather_mode = os.getenv("WEATHER_TOOL_MODE", "mock")
-    weather_ok = weather_mode in ["mock", "api"]
+    # 8. 高德地图 API
+    amap_key = settings.AMAP_API_KEY
     results.append(check_item(
-        "天气工具模式",
-        weather_ok,
-        warning=not weather_ok,
-        detail=f"当前模式: {weather_mode}",
-        suggestion="请在 .env 中设置 WEATHER_TOOL_MODE=mock（模拟）或 api（真实API）" if not weather_ok else ""
+        "高德地图 API Key",
+        bool(amap_key),
+        warning=not amap_key,
+        detail=amap_key[:6] + "***" if amap_key else "未配置",
+        suggestion="请在 .env 中填写 AMAP_API_KEY 以启用天气、POI、路线规划功能" if not amap_key else ""
     ))
 
     # 9. 第三方库
@@ -158,41 +170,73 @@ def render():
     ))
 
     # 显示检查结果
-    st.markdown("###  自检结果汇总")
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'> 自检结果汇总</h3>", unsafe_allow_html=True)
     
     if any(r["状态"].startswith("❌") for r in results):
-        st.error("️ 发现异常项，请根据下方的修复建议进行排查。")
+        st.markdown(f"<div style='background:{colors['error']}15;border-left:4px solid {colors['error']};padding:{spacing['spacing_base']};border-radius:{radius['radius_base']};color:{colors['text_secondary']};'>⚠️ 发现异常项，请根据下方的修复建议进行排查。</div>", unsafe_allow_html=True)
     elif any(r["状态"].startswith("⚠️") for r in results):
-        st.warning("⚡ 发现警告项，建议优化配置以获得最佳体验。")
+        st.markdown(f"<div style='background:{colors['warning']}15;border-left:4px solid {colors['warning']};padding:{spacing['spacing_base']};border-radius:{radius['radius_base']};color:{colors['text_secondary']};'>⚡ 发现警告项，建议优化配置以获得最佳体验。</div>", unsafe_allow_html=True)
     else:
-        st.success("✅ 所有检查项均通过，系统运行正常！")
+        st.markdown(f"<div style='background:{colors['success']}15;border-left:4px solid {colors['success']};padding:{spacing['spacing_base']};border-radius:{radius['radius_base']};color:{colors['text_secondary']};'>✅ 所有检查项均通过，系统运行正常！</div>", unsafe_allow_html=True)
 
     # 以表格形式展示
     df_data = []
     for r in results:
         df_data.append({
             "检查项": r["检查项"],
-            "状态": r["状态"],
+            "状态": f"<span style='color:{r['状态颜色']};font-weight:{typography['font_weight_bold']};'>{r['状态']}</span>",
             "详情": r["详情"],
             "修复建议": r["修复建议"]
         })
     
     import pandas as pd
     df = pd.DataFrame(df_data)
+    
+    st.markdown(f"""
+    <style>
+        .dataframe-container {{
+            background:{colors['bg_card']};
+            border-radius:{radius['radius_lg']};
+            padding:{spacing['spacing_base']};
+            box-shadow:{colors['shadow_card']};
+            overflow-x:auto;
+        }}
+        .dataframe-container table {{
+            width:100%;
+            border-collapse:collapse;
+        }}
+        .dataframe-container th, .dataframe-container td {{
+            padding:{spacing['spacing_sm']} {spacing['spacing_base']};
+            text-align:left;
+            border-bottom:1px solid {colors['border']};
+        }}
+        .dataframe-container th {{
+            background:{colors['primary']}10;
+            color:{colors['text_primary']};
+            font-weight:{typography['font_weight_bold']};
+        }}
+        .dataframe-container tr:hover {{
+            background:{colors['border']};
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<div class='dataframe-container'>", unsafe_allow_html=True)
     st.dataframe(df, use_container_width=True, hide_index=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     # 模型连通性测试区域
     if key_configured:
         st.markdown("---")
-        st.markdown("### 🔌 模型连通性测试")
-        st.caption("⚡ 点击按钮测试大模型和向量模型的实际连通性，该操作会发送真实 API 请求。")
+        st.markdown(f"<h3 style='color:{colors['text_primary']};'>🔌 模型连通性测试</h3>", unsafe_allow_html=True)
+        st.caption(f"<span style='color:{colors['text_tertiary']};'>点击按钮测试大模型和向量模型的实际连通性，该操作会发送真实 API 请求。</span>", unsafe_allow_html=True)
 
         col_m1, col_m2 = st.columns(2)
 
         with col_m1:
             if st.button("🧪 测试 qwen-plus 连通性", use_container_width=True):
                 if not key_configured:
-                    st.error("❌ 未配置 API Key，无法进行连通性测试。请在 .env 中填写 DASHSCOPE_API_KEY。")
+                    st.markdown("❌ 未配置 API Key，无法进行连通性测试。请在 .env 中填写 DASHSCOPE_API_KEY。")
                 else:
                     with st.spinner("正在测试 qwen-plus 连通性..."):
                         try:
@@ -205,14 +249,14 @@ def render():
                                 max_tokens=20
                             )
                             reply = response.choices[0].message.content.strip()
-                            st.success(f"✅ qwen-plus 连通性正常！回复: {reply}")
+                            st.markdown(f"✅ qwen-plus 连通性正常！回复: {reply}")
                         except Exception as e:
-                            st.error(f"❌ qwen-plus 连通性异常: {e}")
+                            st.markdown(f"❌ qwen-plus 连通性异常: {e}")
 
         with col_m2:
             if st.button("🧪 测试 text-embedding-v3 连通性", use_container_width=True):
                 if not key_configured:
-                    st.error(" 未配置 API Key，无法进行连通性测试。请在 .env 中填写 DASHSCOPE_API_KEY。")
+                    st.markdown(" 未配置 API Key，无法进行连通性测试。请在 .env 中填写 DASHSCOPE_API_KEY。")
                 else:
                     with st.spinner("正在测试 text-embedding-v3 连通性..."):
                         try:
@@ -223,8 +267,8 @@ def render():
                                 input=["连通性测试"]
                             )
                             dim = len(response.data[0].embedding)
-                            st.success(f"✅ text-embedding-v3 连通性正常！向量维度: {dim}")
+                            st.markdown(f"✅ text-embedding-v3 连通性正常！向量维度: {dim}")
                         except Exception as e:
-                            st.error(f"❌ text-embedding-v3 连通性异常: {e}")
+                            st.markdown(f"❌ text-embedding-v3 连通性异常: {e}")
     else:
-        st.info("💡 未配置 API Key，跳过模型连通性测试。请在 `.env` 中填写 `DASHSCOPE_API_KEY` 后刷新页面。")
+        st.markdown(f"<div style='background:{colors['info']}15;border-left:4px solid {colors['info']};padding:{spacing['spacing_base']};border-radius:{radius['radius_base']};color:{colors['text_secondary']};'>💡 未配置 API Key，跳过模型连通性测试。请在 `.env` 中填写 `DASHSCOPE_API_KEY` 后刷新页面。</div>", unsafe_allow_html=True)

@@ -1,39 +1,30 @@
 # -*- coding: utf-8 -*-
 """
 AIZS 管理端 - 回答质量评估视图
+重构版：使用主题管理器和组件库提供企业级用户体验。
 """
-import streamlit as st
 import json
+import streamlit as st
 from repositories import sqlite_repository
 from utils.display_utils import safe_text
-from utils.ui_utils import render_page_header, render_empty_state, render_metric_card
+from utils.ui_utils import render_page_header, render_empty_state
+from themes.theme_manager import theme_manager
+
+theme = theme_manager.current_theme
+colors = theme["colors"]
+spacing = theme["spacing"]
+typography = theme["typography"]
+radius = theme["radius"]
+
 
 def render():
-    # 自定义样式
-    st.markdown("""
-    <style>
-        .quality-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: white;
-        }
-        .badge-high { background-color: #2ecc71; }
-        .badge-low { background-color: #e74c3c; }
-        .badge-rules { background-color: #3498db; }
-        .badge-llm { background-color: #9b59b6; }
-    </style>
-    """, unsafe_allow_html=True)
-
     render_page_header(
         "⭐ 回答质量审计与优化",
         "系统管理员可在此页面集中审计客服系统的每一次回答质量，查看评分、分析低质量问答的缺陷，并提取优化建议。"
     )
 
-    # --- 筛选面板 ---
-    st.markdown("### 🔍 筛选条件")
+    # ── 筛选面板 ──
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>🔍 筛选条件</h3>", unsafe_allow_html=True)
     with st.container():
         c1, c2, c3 = st.columns(3)
 
@@ -61,7 +52,7 @@ def render():
     )
 
     st.markdown("---")
-    st.markdown(f"### 📋 质量分析列表 (共 {len(evals)} 条记录)")
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>📋 质量分析列表 (共 {len(evals)} 条记录)</h3>", unsafe_allow_html=True)
 
     if not evals:
         render_empty_state(
@@ -92,13 +83,19 @@ def render():
             except (json.JSONDecodeError, TypeError):
                 issues_list = []
 
-            badge_q = '<span class="quality-badge badge-low">⚠️ 低质量</span>' if is_low == 1 else '<span class="quality-badge badge-high">✅ 高质量</span>'
+            quality_color = colors["error"] if is_low == 1 else colors["success"]
+            quality_badge = f'<span style="background:{quality_color};color:white;padding:4px 10px;border-radius:{radius["radius_base"]};font-size:{typography["font_size_xs"]};font-weight:{typography["font_weight_bold"]};">{"⚠️ 低质量" if is_low == 1 else "✅ 高质量"}</span>'
+            
             if evaluator == "llm":
-                badge_ev = '<span class="quality-badge badge-llm">LLM模型评估</span>'
+                ev_color = colors["info"]
+                ev_text = "LLM模型评估"
             elif evaluator == "rules_feedback":
-                badge_ev = '<span class="quality-badge badge-rules">反馈自动重评估</span>'
+                ev_color = colors["warning"]
+                ev_text = "反馈自动重评估"
             else:
-                badge_ev = '<span class="quality-badge badge-rules">规则指标评估</span>'
+                ev_color = colors["primary"]
+                ev_text = "规则指标评估"
+            evaluator_badge = f'<span style="background:{ev_color};color:white;padding:4px 10px;border-radius:{radius["radius_base"]};font-size:{typography["font_size_xs"]};font-weight:{typography["font_weight_bold"]};">{ev_text}</span>'
 
             feedback_str = "无反馈"
             if rating == "like":
@@ -113,7 +110,7 @@ def render():
 
             with st.expander(card_title):
                 st.markdown(f"**关联会话 ID:** `{sess_id}` | **关联消息 ID:** `{msg_id}`")
-                st.markdown(f"**质量指标:** {badge_q} | **评估方法:** {badge_ev} | **用户反馈:** `{feedback_str}`", unsafe_allow_html=True)
+                st.markdown(f"**质量指标:** {quality_badge} | **评估方法:** {evaluator_badge} | **用户反馈:** `{feedback_str}`", unsafe_allow_html=True)
                 st.markdown("---")
 
                 c_left, c_right = st.columns(2)
@@ -121,7 +118,6 @@ def render():
                     st.markdown(f"**❓ 学生提问 (分类: {intent_cn})：**")
                     st.info(user_q)
 
-                    # 缺陷和建议使用折叠区域
                     with st.expander("🔍 缺陷与改进建议"):
                         st.markdown("**识别缺陷：**")
                         if issues_list:

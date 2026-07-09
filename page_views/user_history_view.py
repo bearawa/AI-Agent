@@ -1,40 +1,56 @@
 # -*- coding: utf-8 -*-
 """
 AIZS 用户咨询端 - 对话历史视图
+重构版：使用主题管理器和组件库提供企业级用户体验。
 """
 import streamlit as st
 import os
 from repositories import sqlite_repository
 from utils.ui_utils import render_page_header, render_empty_state
+from themes.theme_manager import theme_manager
+
+# 获取主题配置
+theme = theme_manager.current_theme
+colors = theme["colors"]
+spacing = theme["spacing"]
+typography = theme["typography"]
+radius = theme["radius"]
 
 def render():
     # 自定义样式
-    st.markdown("""
+    st.markdown(f"""
     <style>
-        .meta-card {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 16px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-            margin-bottom: 20px;
-            border-top: 4px solid #1e3c72;
-        }
-        .meta-card h4 {
-            margin: 0 0 10px 0;
-            color: #1e3c72;
-        }
-        .meta-card p {
-            margin: 4px 0;
-            font-size: 0.9rem;
-            color: #4a5568;
-        }
-        .source-box {
-            background-color: #f8faff;
-            border-left: 4px solid #1e3c72;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
+        .meta-card {{
+            background-color: {colors["bg_card"]};
+            border-radius: {radius["radius_lg"]};
+            padding: {spacing["spacing_base"]};
+            box-shadow: {colors["shadow_card"]};
+            margin-bottom: {spacing["spacing_base"]};
+            border-top: 4px solid {colors["primary"]};
+        }}
+        .meta-card h4 {{
+            margin: 0 0 {spacing["spacing_sm"]} 0;
+            color: {colors["text_primary"]};
+            font-size: {typography["font_size_lg"]};
+        }}
+        .meta-card p {{
+            margin: {spacing["spacing_xxs"]} 0;
+            font-size: {typography["font_size_sm"]};
+            color: {colors["text_secondary"]};
+        }}
+        .source-box {{
+            background-color: {colors["bg_hover"]};
+            border-left: 4px solid {colors["primary"]};
+            padding: {spacing["spacing_sm"]};
+            border-radius: {radius["radius_base"]};
+            margin-bottom: {spacing["spacing_sm"]};
+        }}
+        .source-box strong {{
+            color: {colors["primary"]};
+        }}
+        .source-box small {{
+            color: {colors["text_secondary"]};
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -63,10 +79,10 @@ def render():
             session_options.append(label)
             session_id_map[label] = sess["session_id"]
 
-        col_left, col_right = st.columns([1, 2])
+        col_left, col_right = st.columns([1, 2], gap="medium")
 
         with col_left:
-            st.markdown("### 📁 选择归档会话")
+            st.markdown(f"<h3 style='color:{colors['text_primary']};'>📁 选择归档会话</h3>", unsafe_allow_html=True)
             selected_label = st.selectbox(
                 "选择要浏览的咨询历史记录：",
                 options=session_options,
@@ -79,7 +95,7 @@ def render():
             st.markdown(f"""
             <div class="meta-card">
                 <h4>📊 会话基本指标</h4>
-                <p>🔑 <strong>会话标识：</strong><code style='font-size:0.8rem;'>{selected_session_id}</code></p>
+                <p>🔑 <strong>会话标识：</strong><code style='font-size:{typography["font_size_xs"]};background:{colors["bg_hover"]};padding:2px 6px;border-radius:{radius["radius_xs"]};'>{selected_session_id}</code></p>
                 <p>📝 <strong>当前标题：</strong> {selected_sess_detail['title']}</p>
                 <p>📅 <strong>创建时间：</strong> {selected_sess_detail['created_at']}</p>
                 <p>🔄 <strong>最后更新：</strong> {selected_sess_detail['updated_at']}</p>
@@ -89,11 +105,11 @@ def render():
 
             if st.button("🗑️ 删除本条会话记录", type="secondary", use_container_width=True):
                 sqlite_repository.delete_chat_session(selected_session_id)
-                st.success("成功删除会话！")
+                st.markdown("成功删除会话！")
                 st.rerun()
 
         with col_right:
-            st.markdown("### 💬 历史对话轨迹重现")
+            st.markdown(f"<h3 style='color:{colors['text_primary']};'>💬 历史对话轨迹重现</h3>", unsafe_allow_html=True)
             messages = sqlite_repository.get_chat_messages(selected_session_id)
 
             if not messages:
@@ -115,8 +131,12 @@ def render():
                                         st.markdown(f"""
                                         <div class="source-box">
                                             <strong>[{idx+1}] 出处：{src['file_name']} ({page_str}) | 相似度匹配值：{(1 - src['similarity_distance'])*100:.1f}%</strong><br/>
-                                            <small style="color: #5a6e85;">{src['source_text']}</small>
+                                            <small>{src['source_text']}</small>
                                         </div>
                                         """, unsafe_allow_html=True)
                             else:
-                                st.info("📭 本次回答未检索到知识库来源。")
+                                st.markdown(f"""
+                                    <div style="background:{colors["info"]}15;border-left:4px solid {colors["info"]};padding:{spacing["spacing_sm"]} {spacing["spacing_base"]};border-radius:{radius["radius_base"]};color:{colors["text_secondary"]};font-size:{typography["font_size_sm"]};">
+                                        📭 本次回答未检索到知识库来源。
+                                    </div>
+                                """, unsafe_allow_html=True)

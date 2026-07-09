@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 AIZS 用户咨询端 - Agent 智能演示视图
+重构版：使用主题管理器和组件库提供企业级用户体验。
 """
 import streamlit as st
 import time
@@ -11,6 +12,14 @@ from services.agent_service import AgentService
 from utils.logger import logger
 from utils.display_utils import format_confidence
 from utils.ui_utils import render_page_header, render_empty_state
+from themes.theme_manager import theme_manager
+
+# 获取主题配置
+theme = theme_manager.current_theme
+colors = theme["colors"]
+spacing = theme["spacing"]
+typography = theme["typography"]
+radius = theme["radius"]
 
 # 初始化 Agent 服务
 @st.cache_resource
@@ -25,68 +34,76 @@ def render():
         st.session_state.agent_session_id = None
 
     # 自定义样式
-    st.markdown("""
+    st.markdown(f"""
     <style>
-        .trace-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 16px;
-            border-left: 5px solid #1e3c72;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            margin-bottom: 15px;
-        }
-        .trace-step {
+        .trace-container {{
+            background-color: {colors["bg_card"]};
+            border-radius: {radius["radius_lg"]};
+            padding: {spacing["spacing_base"]};
+            border-left: 5px solid {colors["primary"]};
+            box-shadow: {colors["shadow_card"]};
+            margin-bottom: {spacing["spacing_base"]};
+        }}
+        .trace-step {{
             font-family: 'Consolas', monospace;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-            color: #2c3e50;
-            padding: 6px 0;
-            border-bottom: 1px solid #f0f2f6;
-        }
-        .trace-step:last-child {
+            font-size: {typography["font_size_sm"]};
+            margin-bottom: {spacing["spacing_sm"]};
+            color: {colors["text_primary"]};
+            padding: {spacing["spacing_xs"]} 0;
+            border-bottom: 1px solid {colors["border_light"]};
+        }}
+        .trace-step:last-child {{
             border-bottom: none;
-        }
-        .quality-badge {
+        }}
+        .quality-badge {{
             display: inline-block;
             padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: white;
-            margin-right: 5px;
-        }
-        .badge-high { background-color: #2ecc71; }
-        .badge-low { background-color: #e74c3c; }
+            border-radius: {radius["radius_round"]};
+            font-size: {typography["font_size_xs"]};
+            font-weight: {typography["font_weight_bold"]};
+            color: {colors["primary_text"]};
+            margin-right: {spacing["spacing_xs"]};
+        }}
+        .badge-high {{ background-color: {colors["success"]}; }}
+        .badge-low {{ background-color: {colors["error"]}; }}
 
-        .source-box {
-            background-color: #f8faff;
-            border-left: 4px solid #1e3c72;
-            padding: 10px 12px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-        }
-        .scenarios-box {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 14px;
-            border: 1px solid #e1e4e8;
-            margin-bottom: 15px;
-        }
-        .tool-result-card {
-            background: #f0f8ff;
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid #d0e0f0;
-            margin: 8px 0;
-        }
-        .tool-error-card {
-            background: #fff5f5;
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid #ffd0d0;
-            margin: 8px 0;
-        }
+        .source-box {{
+            background-color: {colors["bg_hover"]};
+            border-left: 4px solid {colors["primary"]};
+            padding: {spacing["spacing_sm"]} {spacing["spacing_base"]};
+            border-radius: {radius["radius_base"]};
+            margin-bottom: {spacing["spacing_sm"]};
+            font-size: {typography["font_size_sm"]};
+        }}
+        .source-box strong {{
+            color: {colors["primary"]};
+        }}
+        .scenarios-box {{
+            background-color: {colors["bg_card"]};
+            border-radius: {radius["radius_lg"]};
+            padding: {spacing["spacing_base"]};
+            border: 1px solid {colors["border_light"]};
+            margin-bottom: {spacing["spacing_base"]};
+        }}
+        .tool-result-card {{
+            background: {colors["primary"]}10;
+            border-radius: {radius["radius_base"]};
+            padding: {spacing["spacing_sm"]};
+            border: 1px solid {colors["primary"]}30;
+            margin: {spacing["spacing_sm"]} 0;
+        }}
+        .tool-error-card {{
+            background: {colors["error"]}10;
+            border-radius: {radius["radius_base"]};
+            padding: {spacing["spacing_sm"]};
+            border: 1px solid {colors["error"]}30;
+            margin: {spacing["spacing_sm"]} 0;
+        }}
+        .message-intent {{
+            color: {colors["text_tertiary"]};
+            font-size: {typography["font_size_xs"]};
+            margin-top: {spacing["spacing_xxs"]};
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -96,7 +113,11 @@ def render():
     )
 
     if not settings.DASHSCOPE_API_KEY:
-        st.warning("⚠️ **温馨提示：** 未配置大模型 API 密钥（DASHSCOPE_API_KEY 为空），系统目前仅能读取已存的历史会话。若要进行智能问答，请在根目录配置 `.env` 文件。")
+        st.markdown(f"""
+            <div style="background:{colors['warning']}15;border-left:4px solid {colors['warning']};padding:{spacing['spacing_sm']} {spacing['spacing_base']};border-radius:{radius['radius_base']};">
+                ⚠️ <strong>温馨提示：</strong>未配置大模型 API 密钥（DASHSCOPE_API_KEY 为空），系统目前仅能读取已存的历史会话。若要进行智能问答，请在根目录配置 <code>.env</code> 文件。
+            </div>
+        """, unsafe_allow_html=True)
 
     # 获取历史会话列表
     sessions = sqlite_repository.list_chat_sessions()
@@ -104,7 +125,7 @@ def render():
 
     # --- 侧边栏：历史 Agent 会话管理 (追加入主菜单下方) ---
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### 🤖 Agent 会话")
+    st.sidebar.markdown(f"<h3 style='color:{colors['text_primary']};'>🤖 Agent 会话</h3>", unsafe_allow_html=True)
 
     # 新建会话按钮
     if st.sidebar.button("➕ 新建 Agent 会话", use_container_width=True, type="primary"):
@@ -118,7 +139,7 @@ def render():
     if not agent_sessions:
         st.sidebar.info("暂无历史 Agent 会话记录，请点击上方按钮新建")
     else:
-        st.sidebar.markdown("#### ⏳ 历史 Agent 会话")
+        st.sidebar.markdown(f"<h4 style='color:{colors['text_secondary']};margin-top:{spacing['spacing_base']};'>⏳ 历史 Agent 会话</h4>", unsafe_allow_html=True)
         for sess in agent_sessions:
             col1, col2 = st.sidebar.columns([5, 1])
             is_active = (sess["session_id"] == st.session_state.agent_session_id)
@@ -139,10 +160,12 @@ def render():
                     st.rerun()
 
     # 顶部场景测试区
-    st.markdown("### 💡 快捷场景测试（免手动输入）")
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>💡 快捷场景测试（免手动输入）</h3>", unsafe_allow_html=True)
     with st.container():
         st.markdown('<div class="scenarios-box">', unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
+
+        # 第一行：原有场景
+        c1, c2, c3 = st.columns(3, gap="small")
         preset_query = None
 
         with c1:
@@ -155,7 +178,19 @@ def render():
             if st.button("常规检索测试 ➔\n\n图书馆几点关门？", use_container_width=True, help="测试普通 RAG 或是校园状态查询"):
                 preset_query = "图书馆几点关门？"
 
-        st.markdown("<p style='font-size:0.8rem;color:#7f8c8d;margin-top:5px;'>*提示：点击快捷按钮将自动建立或在此会话下发送指定提问。*</p>", unsafe_allow_html=True)
+        # 第二行：高德 API 场景
+        c4, c5, c6 = st.columns(3, gap="small")
+        with c4:
+            if st.button("高德天气测试 ➔\n\n今天南京天气怎么样？", use_container_width=True, help="测试高德天气 API 获取真实天气"):
+                preset_query = "今天南京天气怎么样？"
+        with c5:
+            if st.button("周边搜索测试 ➔\n\n学校附近哪里有医院？", use_container_width=True, help="测试高德 POI 周边搜索"):
+                preset_query = "学校附近哪里有医院？"
+        with c6:
+            if st.button("路线规划测试 ➔\n\n从教学楼到图书馆怎么走？", use_container_width=True, help="测试高德路线规划"):
+                preset_query = "从教学楼到图书馆怎么走？"
+
+        st.markdown(f"<p style='font-size:{typography['font_size_xs']};color:{colors['text_disabled']};margin-top:{spacing['spacing_xs']};'>*提示：点击快捷按钮将自动建立或在此会话下发送指定提问。*</p>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     # 确保有活动会话
@@ -166,7 +201,7 @@ def render():
             try:
                 st.session_state.agent_session_id = sqlite_repository.create_chat_session("Agent 演示会话")
             except Exception as e:
-                st.error(f"初始化 Agent 演示会话失败: {e}")
+                st.markdown(f"初始化 Agent 演示会话失败: {e}")
                 st.stop()
 
     # 加载并渲染当前会话的历史消息
@@ -180,7 +215,7 @@ def render():
                 if msg["role"] == "assistant":
                     if msg.get("intent_name"):
                         conf_text = format_confidence(msg.get("intent_confidence"))
-                        st.markdown(f'<p style="color: #555; font-size: 0.8rem; margin-top:-10px;">🎯 识别意图：<b>{msg["intent_name"]}咨询</b> (置信度: {conf_text})</p>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="message-intent">🎯 识别意图：<b>{msg["intent_name"]}咨询</b> (置信度: {conf_text})</div>', unsafe_allow_html=True)
 
                     traces = sqlite_repository.get_agent_traces(st.session_state.agent_session_id, msg["message_id"])
                     if traces:
@@ -198,7 +233,7 @@ def render():
                                 st.markdown(f"""
                                 <div class="trace-step">
                                     <strong>{icon} 步骤 {t['step_index']}: {t['step_title']}</strong><br/>
-                                    <span style="color: #666; font-size: 0.8rem;">{t['step_detail']}</span>
+                                    <span style="color: {colors['text_secondary']}; font-size: {typography['font_size_xs']};">{t['step_detail']}</span>
                                 </div>
                                 """, unsafe_allow_html=True)
                             st.markdown('</div>', unsafe_allow_html=True)
@@ -211,7 +246,7 @@ def render():
                                 st.markdown(f"""
                                 <div class="source-box">
                                     <strong>[{src_idx}] {src['file_name']} ({page_str}) | 余弦距离：{src['similarity_distance']:.4f}</strong><br/>
-                                    <span style="color:#555;">{src['source_text']}</span>
+                                    <span style="color:{colors['text_secondary']};">{src['source_text']}</span>
                                 </div>
                                 """, unsafe_allow_html=True)
 
@@ -246,7 +281,7 @@ def render():
                                         st.markdown(f"**改进建议:** {suggestion}")
                                 else:
                                     st.markdown(f"**改进建议:** {suggestion}")
-                                st.caption(f"评估器类型: {eval_dict['evaluator']} | 时间: {eval_dict['created_at']}")
+                                st.caption(f"<span style='color:{colors['text_disabled']};font-size:{typography['font_size_xs']};'>评估器类型: {eval_dict['evaluator']} | 时间: {eval_dict['created_at']}</span>", unsafe_allow_html=True)
 
                     # 反馈组件
                     feedback = sqlite_repository.get_feedback_by_message_id(msg["message_id"])
@@ -289,7 +324,7 @@ def render():
                         st.markdown(f"**{icon} 步骤 {t['step_index']}: {t['step_title']}** - *{t['step_detail']}*")
 
             text_placeholder = st.empty()
-            text_placeholder.markdown("*Agent 正在深入推理中，请稍候...*")
+            text_placeholder.markdown(f"<span style='color:{colors['text_tertiary']};'>Agent 正在深入推理中，请稍候...</span>", unsafe_allow_html=True)
             sources_placeholder = st.empty()
             quality_placeholder = st.empty()
             full_text = ""
@@ -338,7 +373,7 @@ def render():
                                 else:
                                     st.markdown(f"**改进建议:** {q['suggestion']}")
                     elif chunk["type"] == "error":
-                        st.error(f"❌ 处理出错: {chunk['data']}")
+                        st.markdown(f"❌ 处理出错: {chunk['data']}")
 
                 text_placeholder.markdown(full_text)
                 st.toast("问答处理完毕！已完成执行轨迹、工具调用日志、回答质量评估数据的写入。")
@@ -347,4 +382,4 @@ def render():
 
             except Exception as flow_err:
                 logger.error(f"演示流式发生未捕获异常: {flow_err}")
-                st.error(f"❌ 处理提问时失败: {flow_err}")
+                st.markdown(f"❌ 处理提问时失败: {flow_err}")

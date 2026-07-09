@@ -45,7 +45,7 @@ class AgentService:
         规则：
         1. 模糊问题：["什么时候报名？", "需要什么材料？", "在哪里办理？", "可以申请吗？", "怎么缴费？"]
         2. 如果提问属于这些模糊问题之一：
-           - 检查会话历史中是否有明确的上下文对象（例如包含“招生”、“奖学金”、“报到”等）。
+           - 检查会话历史中是否有明确的上下文对象（例如包含"招生"、"奖学金"、"报到"等）。
            - 如果有，则不进行澄清拦截，交由后续 RAG/Agent 继续处理。
            - 如果没有，则返回特定的澄清追问语句。
         """
@@ -266,14 +266,14 @@ class AgentService:
             }
 
         # 5. 组装 messages 供 LLM Agent 推理
-        agent_system = """你是一个智能的校园问答 Agent 助手。你的目标是协助解答学生与家长的各种校园咨询。
-你拥有一些工具可用。如果用户的提问需要通过工具获取数据（例如天气状况、校历安排、校园服务的开放状态或检索知识库内容），请调用对应的工具。
+        agent_system = """你是中南财经政法大学的智能问答 Agent 助手，服务于学生、家长与教职工。
+你拥有一些工具可用。如果用户的提问需要通过工具获取数据（如天气状况、学校周边设施、路线规划或检索知识库内容），请调用对应的工具。
 你可以根据需要同时调用多个工具，或者根据前一步的执行结果在下一轮调用新工具。
 
 【必须遵守的规则】
 1. 只根据工具返回的真实参考数据来生成最后的回答。如果工具没能查到足够的信息，请老实说明，绝不编造任何电话、地址或时间！
-2. 如果没有任何工具返回有效参考，并且知识库检索也无匹配，请明确回复：“当前知识库未检索到相关依据”，不得任意发挥。
-3. 绝对不要向用户展示你的 Agent 执行轨迹、隐藏的推理过程（如 <thought> 或 CoT 标记），仅输出你最终归纳给用户的简洁、亲切的中文回答。
+2. 如果没有任何工具返回有效参考，并且知识库检索也无匹配，请明确回复："当前知识库未检索到相关依据"，不得任意发挥。
+3. 绝对不要向用户展示你的 Agent 执行轨迹、隐藏的推理过程，仅输出你最终归纳给用户的简洁、亲切的中文回答。
 """
         messages = [{"role": "system", "content": agent_system}]
         
@@ -334,12 +334,12 @@ class AgentService:
                     logger.warning(f"工具参数 JSON 解析失败: {je}")
                 
                 tool_display = func_name
-                if func_name == "get_weather":
-                    tool_display = "天气查询工具"
-                elif func_name == "get_school_calendar":
-                    tool_display = "校历查询工具"
-                elif func_name == "get_campus_service_status":
-                    tool_display = "校园服务状态查询"
+                if func_name == "get_weather_amap":
+                    tool_display = "高德天气查询"
+                elif func_name == "search_nearby_poi":
+                    tool_display = "周边设施搜索"
+                elif func_name == "plan_route":
+                    tool_display = "路线规划导航"
                 elif func_name == "search_campus_knowledge":
                     tool_display = "校园知识库检索"
 

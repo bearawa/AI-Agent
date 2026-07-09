@@ -16,6 +16,12 @@ DASHSCOPE_BASE_URL = os.getenv("DASHSCOPE_BASE_URL", "https://dashscope.aliyuncs
 CHAT_MODEL = os.getenv("CHAT_MODEL", "qwen-plus")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-v3")
 
+# 高德地图 API 配置
+AMAP_API_KEY = os.getenv("AMAP_API_KEY", "")
+AMAP_BASE_URL = os.getenv("AMAP_BASE_URL", "https://restapi.amap.com")
+AMAP_DEFAULT_CITY = os.getenv("AMAP_DEFAULT_CITY", "武汉")
+AMAP_SCHOOL_LOCATION = os.getenv("AMAP_SCHOOL_LOCATION", "114.3926,30.4753")
+
 # 存储路径转换为绝对路径
 CHROMA_DIR = os.getenv("CHROMA_DIR", "data/chroma_db")
 if not os.path.isabs(CHROMA_DIR):

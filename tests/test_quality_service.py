@@ -17,7 +17,7 @@ class TestQualityService(unittest.TestCase):
             query="新生报到要准备什么？明天天气怎么样？",
             answer="材料需要录取通知书。南京天气晴朗。[演示数据]",
             sources=[{"file_name": "迎新指南.pdf", "source_text": "新生报到需准备录取通知书"}],
-            tool_logs=[{"name": "get_weather", "success": True, "result": {}}]
+            tool_logs=[{"name": "get_weather_amap", "success": True, "result": {}}]
         )
         # 3 + 1 (来源) + 1 (工具成功) = 5
         self.assertEqual(res["score"], 5)

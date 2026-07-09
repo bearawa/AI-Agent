@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 AIZS 用户咨询端 - 智能咨询视图
+重构版：使用主题管理器和组件库提供企业级用户体验。
 """
 import os
 import streamlit as st
@@ -11,6 +12,14 @@ from services.chat_service import ChatService
 from utils.logger import logger
 from utils.display_utils import format_confidence
 from utils.ui_utils import render_page_header, render_empty_state
+from themes.theme_manager import theme_manager
+
+# 获取主题配置
+theme = theme_manager.current_theme
+colors = theme["colors"]
+spacing = theme["spacing"]
+typography = theme["typography"]
+radius = theme["radius"]
 
 # 实例化对话服务
 @st.cache_resource
@@ -26,7 +35,7 @@ def render():
 
     # --- 侧边栏：历史会话管理 (这会追加入主菜单下方) ---
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### ⏳ 会话管理")
+    st.sidebar.markdown(f"<h3 style='color:{colors['text_primary']};'>⏳ 会话管理</h3>", unsafe_allow_html=True)
 
     # 新建会话按钮
     if st.sidebar.button("➕ 新建咨询会话", use_container_width=True, type="primary"):
@@ -43,7 +52,7 @@ def render():
     if not sessions:
         st.sidebar.info("暂无历史会话记录")
     else:
-        st.sidebar.markdown("#### 💬 历史会话列表")
+        st.sidebar.markdown(f"<h4 style='color:{colors['text_secondary']};margin-top:{spacing['spacing_base']};'>💬 历史会话列表</h4>", unsafe_allow_html=True)
         for sess in sessions:
             col1, col2 = st.sidebar.columns([5, 1])
             is_active = (sess["session_id"] == st.session_state.current_session_id)
@@ -74,26 +83,36 @@ def render():
 
     # 快速检查 API 状态
     if not settings.DASHSCOPE_API_KEY:
-        st.warning("⚠️ **温馨提示：** 未配置大模型 API 密钥（DASHSCOPE_API_KEY 为空），系统目前仅能读取已存的历史会话。若要进行智能问答或导入文档，请在根目录配置 `.env` 文件。")
+        st.markdown(f"""
+            <div style="background:{colors['warning']}15;border-left:4px solid {colors['warning']};padding:{spacing['spacing_sm']} {spacing['spacing_base']};border-radius:{radius['radius_base']};">
+                ⚠️ <strong>温馨提示：</strong>未配置大模型 API 密钥（DASHSCOPE_API_KEY 为空），系统目前仅能读取已存的历史会话。若要进行智能问答或导入文档，请在根目录配置 <code>.env</code> 文件。
+            </div>
+        """, unsafe_allow_html=True)
 
     # 注入来源样式
-    st.markdown("""
+    st.markdown(f"""
     <style>
-        .source-box {
-            background-color: #f8faff;
-            border-left: 4px solid #2a5298;
-            padding: 12px 14px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-        .source-box strong {
-            color: #1e3c72;
-        }
-        .source-box .source-text {
-            color: #5a6e85;
-            font-size: 0.83rem;
-            margin-top: 4px;
-        }
+        .source-box {{
+            background-color: {colors["bg_hover"]};
+            border-left: 4px solid {colors["primary"]};
+            padding: {spacing["spacing_sm"]} {spacing["spacing_base"]};
+            border-radius: {radius["radius_base"]};
+            margin-bottom: {spacing["spacing_sm"]};
+        }}
+        .source-box strong {{
+            color: {colors["primary"]};
+        }}
+        .source-box .source-text {{
+            color: {colors["text_secondary"]};
+            font-size: {typography["font_size_xs"]};
+            margin-top: {spacing["spacing_xxs"]};
+            line-height: {typography["line_height_lg"]};
+        }}
+        .message-intent {{
+            color: {colors["text_tertiary"]};
+            font-size: {typography["font_size_xs"]};
+            margin-top: {spacing["spacing_xxs"]};
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -101,7 +120,7 @@ def render():
     if st.session_state.current_session_id:
         current_sess_detail = next((s for s in sessions if s["session_id"] == st.session_state.current_session_id), None)
         if current_sess_detail:
-            st.caption(f"当前会话：**{current_sess_detail['title']}** (创建时间：{current_sess_detail['created_at']})")
+            st.caption(f"<span style='color:{colors['text_tertiary']};'>当前会话：<strong>{current_sess_detail['title']}</strong> (创建时间：{current_sess_detail['created_at']})</span>", unsafe_allow_html=True)
 
         messages = sqlite_repository.get_chat_messages(st.session_state.current_session_id)
 
@@ -111,7 +130,7 @@ def render():
                 if msg["role"] == "assistant":
                     if msg.get("intent_name"):
                         conf_text = format_confidence(msg.get("intent_confidence"))
-                        st.markdown(f'<p style="color: #4f5f6f; font-size: 0.85rem; margin-top: -10px; margin-bottom: 8px;">🎯 当前识别意图：<b>{msg["intent_name"]}咨询</b> (置信度: {conf_text})</p>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="message-intent">🎯 当前识别意图：<b>{msg["intent_name"]}咨询</b> (置信度: {conf_text})</div>', unsafe_allow_html=True)
 
                     sources = sqlite_repository.get_message_sources(msg["message_id"])
                     if sources:
@@ -125,7 +144,11 @@ def render():
                                 </div>
                                 """, unsafe_allow_html=True)
                     else:
-                        st.info("📭 当前知识库未检索到足够相关依据，请以学校官方通知为准。")
+                        st.markdown(f"""
+                            <div style="background:{colors["info"]}15;border-left:4px solid {colors["info"]};padding:{spacing["spacing_sm"]} {spacing["spacing_base"]};border-radius:{radius["radius_base"]};color:{colors["text_secondary"]};font-size:{typography["font_size_sm"]};">
+                                📭 当前知识库未检索到足够相关依据，请以学校官方通知为准。
+                            </div>
+                        """, unsafe_allow_html=True)
 
                     # 满意度反馈
                     feedback = sqlite_repository.get_feedback_by_message_id(msg["message_id"])
@@ -134,6 +157,17 @@ def render():
                     dislike_active = feedback and feedback["rating"] == "dislike"
 
                     with col_fb1:
+                        btn_style = ""
+                        if like_active:
+                            btn_style = f"""
+                                <style>
+                                button[data-testid="stButton"] > div {{
+                                    background-color: {colors["success"]} !important;
+                                    color: {colors["primary_text"]} !important;
+                                }}
+                                </style>
+                            """
+                            st.markdown(btn_style, unsafe_allow_html=True)
                         if st.button("👍 有帮助" + (" (已选)" if like_active else ""), key=f"like_{msg['message_id']}", use_container_width=True):
                             sqlite_repository.save_or_update_feedback(msg["message_id"], st.session_state.current_session_id, "like")
                             st.toast("感谢您的反馈！")
@@ -148,7 +182,7 @@ def render():
     else:
         render_empty_state(
             title="暂无活动会话",
-            description='请在左侧栏选择一个历史会话，或点击“新建咨询会话”开始聊天。',
+            description='请在左侧栏选择一个历史会话，或点击"新建咨询会话"开始聊天。',
             icon="💬"
         )
 
@@ -161,7 +195,7 @@ def render():
                 new_id = chat_service.start_new_session()
                 st.session_state.current_session_id = new_id
             except Exception as e:
-                st.error(f"初始化会话失败: {e}")
+                st.markdown(f"初始化会话失败: {e}")
                 st.stop()
 
         with st.chat_message("user"):
@@ -172,7 +206,7 @@ def render():
             full_response = ""
             retrieved_sources = []
 
-            message_placeholder.markdown("*正在检索知识库并思考中...*")
+            message_placeholder.markdown(f"<span style='color:{colors['text_tertiary']};'>正在检索知识库并思考中...</span>", unsafe_allow_html=True)
 
             try:
                 chat_stream = chat_service.handle_chat_flow(st.session_state.current_session_id, user_input)
@@ -182,14 +216,14 @@ def render():
                     if chunk["type"] == "intent":
                         intent_data = chunk["data"]
                         conf_text = format_confidence(intent_data.get("confidence"))
-                        intent_placeholder.markdown(f'<p style="color: #4f5f6f; font-size: 0.85rem; margin-bottom: 5px;">🎯 识别到意图：<b>{intent_data["intent_name"]}咨询</b> (置信度: {conf_text})</p>', unsafe_allow_html=True)
+                        intent_placeholder.markdown(f'<div class="message-intent">🎯 识别到意图：<b>{intent_data["intent_name"]}咨询</b> (置信度: {conf_text})</div>', unsafe_allow_html=True)
                     elif chunk["type"] == "sources":
                         retrieved_sources = chunk["data"]
                     elif chunk["type"] == "text":
                         full_response += chunk["data"]
                         message_placeholder.markdown(full_response + "▌")
                     elif chunk["type"] == "error":
-                        st.error(chunk["data"])
+                        st.markdown(chunk["data"])
                         st.stop()
 
                 message_placeholder.markdown(full_response)
@@ -205,9 +239,13 @@ def render():
                             </div>
                             """, unsafe_allow_html=True)
                 else:
-                    st.info("📭 当前知识库未检索到足够相关依据，请以学校官方通知为准。")
+                    st.markdown(f"""
+                        <div style="background:{colors["info"]}15;border-left:4px solid {colors["info"]};padding:{spacing["spacing_sm"]} {spacing["spacing_base"]};border-radius:{radius["radius_base"]};color:{colors["text_secondary"]};font-size:{typography["font_size_sm"]};">
+                            📭 当前知识库未检索到足够相关依据，请以学校官方通知为准。
+                        </div>
+                    """, unsafe_allow_html=True)
 
                 st.rerun()
             except Exception as e:
-                st.error(f"处理咨询失败: {e}")
+                st.markdown(f"处理咨询失败: {e}")
                 logger.error(f"处理咨询异常: {e}")

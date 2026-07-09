@@ -1,42 +1,41 @@
 # -*- coding: utf-8 -*-
 """
 AIZS 管理端 - 工具调用日志视图
+重构版：使用主题管理器和组件库提供企业级用户体验。
 """
-import streamlit as st
 import json
+import streamlit as st
 from repositories import sqlite_repository
 from utils.display_utils import safe_text, safe_json_preview
 from utils.ui_utils import render_page_header, render_empty_state
+from themes.theme_manager import theme_manager
+
+theme = theme_manager.current_theme
+colors = theme["colors"]
+spacing = theme["spacing"]
+typography = theme["typography"]
+radius = theme["radius"]
+
 
 def render():
-    # 自定义样式
-    st.markdown("""
-    <style>
-        .status-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: white;
-        }
-        .badge-success { background-color: #2ecc71; }
-        .badge-fail { background-color: #e74c3c; }
-    </style>
-    """, unsafe_allow_html=True)
-
     render_page_header(
         "🛠️ 工具调用审计日志",
         "系统管理员可在此页面查看并审计 Agent 所有 Function Calling 工具执行轨迹，包含入参、执行耗时、成功状态及返回结果摘要。"
     )
 
-    # --- 筛选控制面板 ---
-    st.markdown("### 🔍 筛选条件")
+    # ── 筛选控制面板 ──
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>🔍 筛选条件</h3>", unsafe_allow_html=True)
     with st.container():
         c1, c2, c3 = st.columns(3)
 
         with c1:
-            tool_options = ["全部", "get_weather", "get_school_calendar", "get_campus_service_status", "search_campus_knowledge"]
+            tool_options = [
+                "全部",
+                "get_weather_amap",
+                "search_nearby_poi",
+                "plan_route",
+                "search_campus_knowledge"
+            ]
             selected_tool = st.selectbox("选择工具：", tool_options)
 
         with c2:
@@ -52,7 +51,7 @@ def render():
     logs = sqlite_repository.list_tool_logs(limit=limit_count, tool_name=tool_name_filter, success=selected_status_val)
 
     st.markdown("---")
-    st.markdown(f"### 📋 工具日志明细 (共 {len(logs)} 条记录)")
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>📋 工具日志明细 (共 {len(logs)} 条记录)</h3>", unsafe_allow_html=True)
 
     if not logs:
         render_empty_state(
@@ -73,11 +72,7 @@ def render():
             elapsed = log["elapsed_ms"]
             created = safe_text(log["created_at"], "暂无")
 
-            # 成功/失败状态用中文展示
-            if success == 1:
-                status_badge = '<span class="status-badge badge-success">✅ 执行成功</span>'
-            else:
-                status_badge = '<span class="status-badge badge-fail">❌ 执行失败</span>'
+            status_badge = f'<span style="background:{colors["success"]};color:white;padding:4px 10px;border-radius:{radius["radius_base"]};font-size:{typography["font_size_xs"]};font-weight:{typography["font_weight_bold"]};">✅ 执行成功</span>' if success == 1 else f'<span style="background:{colors["error"]};color:white;padding:4px 10px;border-radius:{radius["radius_base"]};font-size:{typography["font_size_xs"]};font-weight:{typography["font_weight_bold"]};">❌ 执行失败</span>'
 
             card_title = f"⏱️ {created} | 工具：{t_disp} ({t_name}) | 耗时：{safe_text(elapsed, '暂无')} ms"
 
@@ -89,8 +84,7 @@ def render():
 
                 c_args, c_res = st.columns(2)
                 with c_args:
-                    st.markdown("**📥 传入参数 (Arguments)：**")
-                    # 安全 JSON 预览，空值不报错
+                    st.markdown(f"<h4 style='color:{colors['text_secondary']};'>📥 传入参数 (Arguments)</h4>", unsafe_allow_html=True)
                     preview_args = safe_json_preview(t_args, max_length=500)
                     if preview_args:
                         try:
@@ -102,7 +96,7 @@ def render():
                         st.caption("无入参")
 
                 with c_res:
-                    st.markdown("**📤 执行结果 (Result)：**")
+                    st.markdown(f"<h4 style='color:{colors['text_secondary']};'>📤 执行结果 (Result)</h4>", unsafe_allow_html=True)
                     preview_res = safe_json_preview(t_res, max_length=500)
                     if preview_res:
                         try:

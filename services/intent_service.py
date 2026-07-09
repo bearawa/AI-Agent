@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 from openai import OpenAI
 from config import settings
 from utils.logger import logger
+from mapping.intent_mapper import intent_mapper
 
 class IntentService:
     def __init__(self):
@@ -26,18 +27,13 @@ class IntentService:
                           "饭卡", "挂失", "充值", "水电费", "维修"],
             "campus_life": ["社团", "活动", "校车", "校园网", "生活用品", "交通", "体育馆",
                             "运动会", "兼职", "实习", "志愿者", "迎新晚会", "文艺",
-                            "比赛", "讲座", "wifi", "Wi-Fi", "健身房", "操场"]
+                            "比赛", "讲座", "wifi", "Wi-Fi", "健身房", "操场"],
+            "weather": ["天气", "温度", "下雨", "气温", "预报", "晴", "阴", "雨", "雪"],
+            "navigation": ["怎么走", "路线", "导航", "步行", "骑行", "到哪里"]
         }
 
-        # 意图中文映射名
-        self.intent_names = {
-            "general": "通用资料",
-            "admission": "招生",
-            "academic": "学务",
-            "logistics": "后勤",
-            "campus_life": "校园生活",
-            "other": "其他"
-        }
+        # 意图中文映射名（从映射器获取）
+        self.intent_names = intent_mapper.INTENT_NAMES
 
     @property
     def client(self) -> OpenAI:

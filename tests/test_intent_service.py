@@ -70,7 +70,7 @@ class TestIntentService(unittest.TestCase):
         mock_create.return_value = mock_response
 
         # 2. 调用分类，理应优雅捕获并回退至 other
-        res = self.intent_service.classify_intent("今天天气真好，我们出去玩吧。")
+        res = self.intent_service.classify_intent("你好呀，今天过得怎么样？")
 
         # 3. 断言
         self.assertEqual(res["intent"], "other")

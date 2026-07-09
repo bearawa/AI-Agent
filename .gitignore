@@ -30,3 +30,8 @@ ENV/
 *.njsproj
 *.sln
 *.swp
+
+# 未使用的前端实验目录
+frontend/
+__pycache__/
+*.pyc

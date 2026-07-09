@@ -57,21 +57,21 @@ def run_scenarios():
 
     # 场景 2：工具直接调用测试
     print("\n--------------------------------------------------")
-    print("场景 2：测试 Function Calling 工具直接调用")
-    print("我们将独立调用 2 个核心工具：get_weather 和 get_school_calendar")
+    print("场景 2：测试 Function Calling 工具直接调用（高德 API）")
+    print("我们将调用高德天气查询和周边 POI 搜索工具")
     print("--------------------------------------------------")
-    
-    print("\n1) 调用天气查询工具: get_weather(city='南京', date='明天')")
-    weather_res = call_tool("get_weather", {"city": "南京", "date": "明天"}, session_id=session_id)
+
+    print("\n1) 调用高德天气查询工具: get_weather_amap(city='南京', date='明天')")
+    weather_res = call_tool("get_weather_amap", {"city": "南京", "date": "明天"}, session_id=session_id)
     print(f"执行成功: {weather_res['success']}")
     print(f"耗时: {weather_res['elapsed_ms']} ms")
     print(f"返回结果: {json.dumps(weather_res['result'], ensure_ascii=False, indent=2)}")
 
-    print("\n2) 调用校历查询工具: get_school_calendar(query='开学')")
-    calendar_res = call_tool("get_school_calendar", {"query": "开学"}, session_id=session_id)
-    print(f"执行成功: {calendar_res['success']}")
-    print(f"耗时: {calendar_res['elapsed_ms']} ms")
-    print(f"返回结果: {json.dumps(calendar_res['result'], ensure_ascii=False, indent=2)}")
+    print("\n2) 调用周边设施搜索工具: search_nearby_poi(keyword='医院', radius=2000)")
+    poi_res = call_tool("search_nearby_poi", {"keyword": "医院", "radius": 2000}, session_id=session_id)
+    print(f"执行成功: {poi_res['success']}")
+    print(f"耗时: {poi_res['elapsed_ms']} ms")
+    print(f"返回结果: {json.dumps(poi_res['result'], ensure_ascii=False, indent=2)}")
 
     # 场景 3：复合推理场景及质量评估
     print("\n--------------------------------------------------")
@@ -90,8 +90,8 @@ def run_scenarios():
         rag_res = call_tool("search_campus_knowledge", {"query": "新生报到"}, session_id=session_id)
         print(f"    -> [检索结果已返回]，共匹配切片数: {rag_res['result'].get('chunks_count', 0)}")
         
-        print("  - [步骤 4] 正在调用天气查询工具：参数 {'city': '南京', 'date': '明天'}")
-        weather_res = call_tool("get_weather", {"city": "南京", "date": "明天"}, session_id=session_id)
+        print("  - [步骤 4] 正在调用高德天气查询工具：参数 {'city': '南京', 'date': '明天'}")
+        weather_res = call_tool("get_weather_amap", {"city": "南京", "date": "明天"}, session_id=session_id)
         print(f"    -> [天气结果已返回]")
         
         print("  - [步骤 5] 正在生成综合回答...")
@@ -127,7 +127,7 @@ def run_scenarios():
             answer=mock_answer,
             sources=rag_res["result"].get("results", []),
             tool_logs=[
-                {"name": "get_weather", "success": True, "result": weather_res["result"]},
+                {"name": "get_weather_amap", "success": True, "result": weather_res["result"]},
                 {"name": "search_campus_knowledge", "success": True, "result": rag_res["result"]}
             ]
         )

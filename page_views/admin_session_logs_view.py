@@ -1,53 +1,38 @@
 # -*- coding: utf-8 -*-
 """
 AIZS 管理端 - 会话日志视图
+重构版：使用主题管理器和组件库提供企业级用户体验。
 """
-import streamlit as st
 import datetime
+import streamlit as st
 from services.analytics_service import AnalyticsService
 from repositories import sqlite_repository
 from utils.display_utils import format_confidence, format_ms, safe_text
 from utils.ui_utils import render_page_header, render_empty_state
+from themes.theme_manager import theme_manager
+
+theme = theme_manager.current_theme
+colors = theme["colors"]
+spacing = theme["spacing"]
+typography = theme["typography"]
+radius = theme["radius"]
+
 
 @st.cache_resource
 def get_analytics_service():
     return AnalyticsService()
 
+
 def render():
     analytics_service = get_analytics_service()
-
-    # 自定义样式
-    st.markdown("""
-    <style>
-        .log-box {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            border: 1px solid #eef2f3;
-        }
-        .meta-tag {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            margin-right: 6px;
-        }
-        .tag-intent { background-color: #e3f2fd; color: #0d47a1; }
-        .tag-source { background-color: #e8f5e9; color: #1b5e20; }
-        .tag-nosource { background-color: #ffebee; color: #c62828; }
-        .tag-time { background-color: #eceff1; color: #37474f; }
-    </style>
-    """, unsafe_allow_html=True)
 
     render_page_header(
         "📜 会话审计日志",
         "系统管理员可在此页面检索、审计全部历史咨询对话，深入还原每次问答的匹配耗时、改写细节及知识库切片引用证据。"
     )
 
-    # --- 筛选控制面板 ---
-    st.markdown("### 🔍 筛选条件")
+    # ── 筛选控制面板 ──
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>🔍 筛选条件</h3>", unsafe_allow_html=True)
     with st.container():
         c1, c2, c3, c4 = st.columns(4)
 
@@ -100,7 +85,7 @@ def render():
     )
 
     st.markdown("---")
-    st.markdown(f"### 📋 查询结果 (共 {len(logs)} 条记录)")
+    st.markdown(f"<h3 style='color:{colors['text_primary']};'>📋 查询结果 (共 {len(logs)} 条记录)</h3>", unsafe_allow_html=True)
 
     if not logs:
         render_empty_state(
@@ -124,15 +109,14 @@ def render():
             comment = log.get("feedback_comment")
 
             intent_name_text = safe_text(intent_name, "未识别")
-
             confidence_text = format_confidence(confidence)
 
             if has_src == 1:
                 source_text = "有来源"
-                source_tag = "tag-source"
+                source_color = colors["success"]
             else:
                 source_text = "无来源"
-                source_tag = "tag-nosource"
+                source_color = colors["error"]
 
             time_ms_text = format_ms(time_ms)
 
@@ -148,10 +132,12 @@ def render():
 
             with st.expander(summary_title):
                 st.markdown(f"""
-                <span class="meta-tag tag-intent">🎯 意图：{intent_name_text} ({confidence_text} 置信度)</span>
-                <span class="meta-tag {source_tag}">📁 匹配引用：{source_text}</span>
-                <span class="meta-tag tag-time">⚡ 耗时：{time_ms_text}</span>
-                <span class="meta-tag tag-time">💬 反馈：{rating_str}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:{spacing['spacing_sm']};margin-bottom:{spacing['spacing_base']};">
+                    <span style="background:{colors['primary']}15;color:{colors['primary']};padding:4px 10px;border-radius:{radius['radius_base']};font-size:{typography['font_size_xs']};font-weight:{typography['font_weight_bold']};">🎯 意图：{intent_name_text} ({confidence_text} 置信度)</span>
+                    <span style="background:{source_color}15;color:{source_color};padding:4px 10px;border-radius:{radius['radius_base']};font-size:{typography['font_size_xs']};font-weight:{typography['font_weight_bold']};">📁 匹配引用：{source_text}</span>
+                    <span style="background:{colors['bg_card']};color:{colors['text_secondary']};padding:4px 10px;border-radius:{radius['radius_base']};font-size:{typography['font_size_xs']};font-weight:{typography['font_weight_bold']};border:1px solid {colors['border']};">⚡ 耗时：{time_ms_text}</span>
+                    <span style="background:{colors['bg_card']};color:{colors['text_secondary']};padding:4px 10px;border-radius:{radius['radius_base']};font-size:{typography['font_size_xs']};font-weight:{typography['font_weight_bold']};border:1px solid {colors['border']};">💬 反馈：{rating_str}</span>
+                </div>
                 """, unsafe_allow_html=True)
 
                 st.markdown(f"**会话 ID:** `{session_id}`")
@@ -179,10 +165,10 @@ def render():
                         for src_idx, src in enumerate(sources, 1):
                             page_str = f"第 {src['page_number']} 页" if src['page_number'] is not None else f"片段 {src['chunk_index']}"
                             st.markdown(f"""
-                            <div style="background-color: #f8faff; padding: 10px; border-radius: 6px; border-left: 4px solid #1e3c72; margin-bottom: 6px;">
-                                <strong>[{src_idx}] {src['file_name']} ({page_str}) | 相似度匹配值：{(1-src['similarity_distance'])*100:.1f}%</strong>
-                                <p style="font-size: 0.85rem; color: #5a6e85; margin: 5px 0 0 0;">{src['source_text']}</p>
+                            <div style="background:{colors['bg_card']};padding:{spacing['spacing_sm']};border-radius:{radius['radius_base']};border-left:4px solid {colors['primary']};margin-bottom:{spacing['spacing_sm']};border:1px solid {colors['border']};">
+                                <strong style="color:{colors['text_primary']};">[{src_idx}] {src['file_name']} ({page_str}) | 相似度匹配值：{(1-src['similarity_distance'])*100:.1f}%</strong>
+                                <p style="font-size:{typography['font_size_sm']};color:{colors['text_tertiary']};margin:{spacing['spacing_xxs']} 0 0 0;">{src['source_text']}</p>
                             </div>
                             """, unsafe_allow_html=True)
                 else:
-                    st.markdown("*注：本次回答未检索匹配到任何符合距离阈值的知识库内容，完全依靠系统兜底或大模型闲聊输出。*")
+                    st.markdown(f"<div style='color:{colors['text_tertiary']};font-size:{typography['font_size_sm']};'>*注：本次回答未检索匹配到任何符合距离阈值的知识库内容，完全依靠系统兜底或大模型闲聊输出。*</div>", unsafe_allow_html=True)
