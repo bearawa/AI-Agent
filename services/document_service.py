@@ -1,6 +1,6 @@
 import os
 import pdfplumber
-import pdfplumber
+import pypdf
 import docx
 from typing import List, Dict, Any, Optional
 from utils.text_splitter import ChineseTextSplitter
