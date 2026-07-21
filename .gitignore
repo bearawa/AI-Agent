@@ -32,6 +32,6 @@ ENV/
 *.swp
 
 # 未使用的前端实验目录
-frontend/
+# frontend/
 __pycache__/
 *.pyc
