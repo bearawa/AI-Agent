@@ -94,13 +94,13 @@ def render():
     <style>
         .source-box {{
             background-color: {colors["bg_hover"]};
-            border-left: 4px solid {colors["primary"]};
+            border: 1px solid {colors["border"]};
             padding: {spacing["spacing_sm"]} {spacing["spacing_base"]};
             border-radius: {radius["radius_base"]};
             margin-bottom: {spacing["spacing_sm"]};
         }}
         .source-box strong {{
-            color: {colors["primary"]};
+            color: {colors["text_primary"]};
         }}
         .source-box .source-text {{
             color: {colors["text_secondary"]};
@@ -130,7 +130,7 @@ def render():
                 if msg["role"] == "assistant":
                     if msg.get("intent_name"):
                         conf_text = format_confidence(msg.get("intent_confidence"))
-                        st.markdown(f'<div class="message-intent">🎯 当前识别意图：<b>{msg["intent_name"]}咨询</b> (置信度: {conf_text})</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="message-intent">🎯 当前识别意图：{msg["intent_name"]}咨询 (置信度: {conf_text})</div>', unsafe_allow_html=True)
 
                     sources = sqlite_repository.get_message_sources(msg["message_id"])
                     if sources:
@@ -216,7 +216,7 @@ def render():
                     if chunk["type"] == "intent":
                         intent_data = chunk["data"]
                         conf_text = format_confidence(intent_data.get("confidence"))
-                        intent_placeholder.markdown(f'<div class="message-intent">🎯 识别到意图：<b>{intent_data["intent_name"]}咨询</b> (置信度: {conf_text})</div>', unsafe_allow_html=True)
+                        intent_placeholder.markdown(f'<div class="message-intent">🎯 识别到意图：{intent_data["intent_name"]}咨询 (置信度: {conf_text})</div>', unsafe_allow_html=True)
                     elif chunk["type"] == "sources":
                         retrieved_sources = chunk["data"]
                     elif chunk["type"] == "text":
