@@ -46,6 +46,10 @@ app.add_middleware(
 chat_service = ChatService()
 
 # --- Pydantic 模型 ---
+class AdminLoginRequest(BaseModel):
+    username: str
+    password: str
+
 class ChatMessageRequest(BaseModel):
     session_id: str
     message: str
@@ -64,6 +68,32 @@ class MessageResponse(BaseModel):
     created_at: str
 
 # --- API 路由 ---
+
+@app.post("/api/admin/login")
+def admin_login(req: AdminLoginRequest):
+    expected_user = settings.ADMIN_USERNAME
+    expected_pass = settings.ADMIN_PASSWORD
+
+    if not expected_user or not expected_pass:
+        raise HTTPException(status_code=500, detail="Admin credentials not configured")
+
+    if req.username == expected_user and req.password == expected_pass:
+        return {"status": "success", "message": "Login successful"}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+@app.get("/api/admin/status")
+def admin_status():
+    try:
+        sessions_count = len(sqlite_repository.list_chat_sessions())
+        return {
+            "status": "online",
+            "total_sessions": sessions_count,
+            "database": "connected"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get system status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get system status")
 
 @app.get("/api/sessions", response_model=List[SessionResponse])
 def list_sessions():
