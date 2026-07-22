@@ -175,14 +175,6 @@ export default function Home() {
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="flex flex-col items-center justify-center p-12 max-w-2xl w-full text-center">
-                <div className="relative mb-10 group">
-                  <div className="absolute inset-0 bg-[var(--color-zuel-cyan)] blur-2xl opacity-20 rounded-full group-hover:opacity-40 transition-opacity duration-700"></div>
-                  <img
-                    src="/images/zuel-logo.webp"
-                    alt="ZUEL Logo"
-                    className="relative h-32 object-contain drop-shadow-xl"
-                  />
-                </div>
 
                 <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-zuel-blue)] to-[var(--color-zuel-cyan)] mb-4 tracking-tight">
                   AIZS 智能咨询平台
