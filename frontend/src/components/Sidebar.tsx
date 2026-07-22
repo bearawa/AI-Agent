@@ -32,13 +32,6 @@ export default function Sidebar({ currentSessionId, onSelectSession, onNewSessio
 
   return (
     <div className="w-[280px] h-full bg-[#014F7A] text-white flex flex-col p-4 shadow-xl z-10">
-      <div className="mb-6 flex items-center justify-center bg-white/5 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
-        <img
-          src="/images/zuel-logo.webp"
-          alt="ZUEL Logo"
-          className="h-14 object-contain filter invert opacity-90"
-        />
-      </div>
 
       <button
         onClick={async () => {
