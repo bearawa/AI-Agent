@@ -1,5 +1,4 @@
 import unittest
-import json
 from services.tool_registry import call_tool, TOOL_REGISTRY
 from repositories import sqlite_repository
 

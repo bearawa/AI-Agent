@@ -284,6 +284,36 @@ def get_document(doc_id: str) -> Optional[Dict[str, Any]]:
         logger.error(f"通过 doc_id 查询文档失败: {e}")
         return None
 
+
+def get_documents_by_ids(doc_ids: List[str]) -> List[Dict[str, Any]]:
+    """
+    根据 doc_id 列表批量查询文档记录。
+    """
+    if not doc_ids:
+        return []
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            results = []
+            chunk_size = 900
+            for i in range(0, len(doc_ids), chunk_size):
+                chunk = doc_ids[i:i+chunk_size]
+                placeholders = ','.join(['?'] * len(chunk))
+                query = f'''
+                    SELECT *
+                    FROM documents
+                    WHERE doc_id IN ({placeholders})
+                      AND (deleted_at IS NULL OR deleted_at = '')
+                      AND status != 'deleted'
+                '''
+                cursor.execute(query, chunk)
+                rows = cursor.fetchall()
+                results.extend([dict(row) for row in rows])
+            return results
+    except sqlite3.Error as e:
+        logger.error(f"批量查询文档失败: {e}")
+        return []
+
 def list_documents() -> List[Dict[str, Any]]:
     """
     列出所有文档。
@@ -553,14 +583,9 @@ def save_message_sources(message_id: str, sources: List[Dict[str, Any]]) -> bool
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            for src in sources:
-                source_id = str(uuid.uuid4())
-                cursor.execute('''
-                    INSERT INTO message_sources (
-                        source_id, message_id, doc_id, chunk_id, file_name, page_number, chunk_index, source_text, similarity_distance
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    source_id,
+            data = [
+                (
+                    str(uuid.uuid4()),
                     message_id,
                     src['doc_id'],
                     src['chunk_id'],
@@ -569,7 +594,14 @@ def save_message_sources(message_id: str, sources: List[Dict[str, Any]]) -> bool
                     src['chunk_index'],
                     src['source_text'],
                     src['similarity_distance']
-                ))
+                )
+                for src in sources
+            ]
+            cursor.executemany('''
+                INSERT INTO message_sources (
+                    source_id, message_id, doc_id, chunk_id, file_name, page_number, chunk_index, source_text, similarity_distance
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', data)
             conn.commit()
         return True
     except sqlite3.Error as e:

@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import json
 import logging
 import uuid
@@ -16,7 +17,21 @@ from services.chat_service import ChatService
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="AIZS API", description="AIZS FastAPI Backend for Next.js Frontend")
+# 在应用启动时初始化数据库
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 启动时执行
+    logger.info("Initializing SQLite database on startup...")
+    try:
+        sqlite_repository.init_db()
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLite database: {e}")
+    yield
+    # 关闭时执行 (可以留空)
+
+app = FastAPI(title="AIZS API", description="AIZS FastAPI Backend for Next.js Frontend", lifespan=lifespan)
 
 # 允许跨域请求
 app.add_middleware(

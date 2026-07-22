@@ -1,6 +1,6 @@
 import os
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from config import settings
 
 # 强行覆盖数据库路径为测试专属路径

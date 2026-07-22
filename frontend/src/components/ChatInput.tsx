@@ -35,27 +35,27 @@ export default function ChatInput({ onSendMessage, isLoading }: ChatInputProps) 
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 bg-white dark:bg-gray-900">
-      <div className="relative flex items-end w-full border border-gray-300 dark:border-gray-600 rounded-3xl bg-white dark:bg-gray-800 shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
+    <div className="w-full max-w-4xl mx-auto px-4 pb-6 pt-2">
+      <div className="relative flex items-end w-full border border-gray-200/80 dark:border-gray-700/80 rounded-[2rem] bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] overflow-hidden focus-within:ring-2 focus-within:ring-[var(--color-zuel-cyan)] focus-within:border-transparent transition-all duration-300">
         <textarea
           ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="请输入您想咨询的校园问题..."
-          className="w-full max-h-[200px] py-3.5 pl-4 pr-12 bg-transparent outline-none resize-none overflow-y-auto text-black dark:text-white"
+          placeholder="给 AIZS 发送消息..."
+          className="w-full max-h-[200px] py-4 pl-6 pr-14 bg-transparent outline-none resize-none overflow-y-auto text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 leading-relaxed text-base"
           rows={1}
         />
         <button
           onClick={handleSubmit}
           disabled={!input.trim() || isLoading}
-          className="absolute right-2 bottom-2 p-1.5 bg-black dark:bg-white text-white dark:text-black rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
+          className="absolute right-3 bottom-3 p-2 bg-[var(--color-zuel-cyan)] text-white rounded-full disabled:opacity-40 disabled:scale-95 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 hover:bg-[var(--color-zuel-cyan-dark)] hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm"
         >
-          <ArrowUp size={20} />
+          <ArrowUp size={20} strokeWidth={2.5} />
         </button>
       </div>
-      <div className="text-center text-xs text-gray-500 mt-2">
-        AIZS 智能咨询系统可能产生错误，请以学校官方文件为准。
+      <div className="text-center text-xs text-gray-400 mt-3 font-medium tracking-wide">
+        内容由 AI 生成，请注意甄别，重要信息请以 <span className="text-[var(--color-zuel-blue)] dark:text-[var(--color-zuel-cyan)]">学校官方文件</span> 为准。
       </div>
     </div>
   );

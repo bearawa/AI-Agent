@@ -11,7 +11,7 @@ from repositories import sqlite_repository
 from services.agent_service import AgentService
 from utils.logger import logger
 from utils.display_utils import format_confidence
-from utils.ui_utils import render_page_header, render_empty_state
+from utils.ui_utils import render_page_header
 from themes.theme_manager import theme_manager
 
 # 获取主题配置
@@ -263,8 +263,8 @@ def render():
                         issues_list = []
                         try:
                             issues_list = json.loads(eval_dict["issues"])
-                        except:
-                            pass
+                        except Exception as e:
+                            logger.error(f"Failed to parse issues JSON: {e}")
                         suggestion = eval_dict["suggestion"]
 
                         with st.expander("⭐ 回答质量评估结果", expanded=False):
@@ -323,6 +323,7 @@ def render():
                             icon = "❓"
                         st.markdown(f"**{icon} 步骤 {t['step_index']}: {t['step_title']}** - *{t['step_detail']}*")
 
+            intent_placeholder = st.empty()
             text_placeholder = st.empty()
             text_placeholder.markdown(f"<span style='color:{colors['text_tertiary']};'>Agent 正在深入推理中，请稍候...</span>", unsafe_allow_html=True)
             sources_placeholder = st.empty()
@@ -336,7 +337,9 @@ def render():
 
                 for chunk in agent_flow:
                     if chunk["type"] == "intent":
-                        pass
+                        intent_data = chunk["data"]
+                        conf_text = format_confidence(intent_data.get("confidence"))
+                        intent_placeholder.markdown(f'<div class="message-intent">🎯 识别到意图：{intent_data["intent_name"]}咨询 (置信度: {conf_text})</div>', unsafe_allow_html=True)
                     elif chunk["type"] == "trace":
                         trace_list.append(chunk["data"])
                         render_traces()

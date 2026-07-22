@@ -27,7 +27,7 @@ export default function Home() {
 
   const fetchMessages = async (sessionId: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/sessions/${sessionId}/messages`);
+      const res = await fetch(`/api/sessions/${sessionId}/messages`);
       const data = await res.json();
       const mapped = data.map((msg: any) => ({
         id: msg.message_id,
@@ -43,11 +43,10 @@ export default function Home() {
 
   const handleNewSession = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/sessions", {
-        method: "POST",
-      });
+      const res = await fetch("/api/sessions", { method: "POST" });
       const data = await res.json();
       setCurrentSessionId(data.session_id);
+      setMessages([]);
     } catch (e) {
       console.error("Failed to create new session", e);
     }
@@ -60,7 +59,7 @@ export default function Home() {
     if (!sessionId) {
       // Auto-create session if none exists
       try {
-        const res = await fetch("http://localhost:8000/api/sessions", { method: "POST" });
+        const res = await fetch("/api/sessions", { method: "POST" });
         const data = await res.json();
         sessionId = data.session_id;
         setCurrentSessionId(sessionId);
@@ -88,7 +87,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/api/chat/stream", {
+      const response = await fetch("/api/chat/stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,12 +135,11 @@ export default function Home() {
                     content: currentAssistantText,
                     sources: currentSources,
                     intentName: currentIntent,
-                    isStreaming: true
                   } : msg
                 )
               );
-            } catch (e) {
-              console.error("Error parsing SSE chunk:", e, "Line:", line);
+            } catch (err) {
+              console.error("Error parsing JSON chunk", err);
             }
           }
         }
@@ -159,21 +157,55 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-900">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-[#0a0a0a] selection:bg-[var(--color-zuel-cyan)] selection:text-white">
       <Sidebar
         currentSessionId={currentSessionId}
         onSelectSession={setCurrentSessionId}
         onNewSession={handleNewSession}
       />
 
-      <main className="flex-1 flex flex-col relative">
-        <div className="flex-1 overflow-y-auto">
+      <main className="flex-1 flex flex-col relative w-full">
+        {/* Subtle background gradient mesh */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40 dark:opacity-20">
+          <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[var(--color-zuel-blue)] blur-[120px] opacity-20"></div>
+          <div className="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[var(--color-zuel-cyan)] blur-[120px] opacity-20"></div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto z-10 scroll-smooth custom-scrollbar relative">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <h1 className="text-4xl font-bold text-gray-300 dark:text-gray-600">AIZS 智能咨询</h1>
+              <div className="flex flex-col items-center justify-center p-12 max-w-2xl w-full text-center">
+                <div className="relative mb-10 group">
+                  <div className="absolute inset-0 bg-[var(--color-zuel-cyan)] blur-2xl opacity-20 rounded-full group-hover:opacity-40 transition-opacity duration-700"></div>
+                  <img
+                    src="/images/zuel-logo.webp"
+                    alt="ZUEL Logo"
+                    className="relative h-32 object-contain drop-shadow-xl"
+                  />
+                </div>
+
+                <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-zuel-blue)] to-[var(--color-zuel-cyan)] mb-4 tracking-tight">
+                  AIZS 智能咨询平台
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400 text-lg md:text-xl font-medium mb-8 max-w-lg leading-relaxed">
+                  中南财经政法大学您的专属校园 AI 助手，随时为您解答校园生活、学习疑问。
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg mt-4">
+                  {['图书馆今天几点闭馆？', '怎么办理校园网宽带？', '南湖校区二食堂有什么好吃的？', '新生入学体检流程是什么？'].map((suggestion, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSendMessage(suggestion)}
+                      className="px-4 py-3 bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:border-[var(--color-zuel-cyan)] hover:text-[var(--color-zuel-blue)] dark:hover:text-[var(--color-zuel-cyan)] hover:shadow-md transition-all text-left group"
+                    >
+                      {suggestion} <span className="opacity-0 group-hover:opacity-100 transition-opacity float-right text-[var(--color-zuel-cyan)]">→</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
-            <div className="pb-32">
+            <div className="pb-40">
               {messages.map((msg) => (
                 <ChatMessage key={msg.id} message={msg} />
               ))}
@@ -182,7 +214,8 @@ export default function Home() {
           )}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white dark:from-gray-900 dark:via-gray-900 to-transparent pt-10">
+        {/* Sticky Input Area */}
+        <div className="absolute bottom-0 left-0 right-0 pt-16 pb-4 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-[#0a0a0a] dark:via-[#0a0a0a]/95 z-20">
           <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
         </div>
       </main>

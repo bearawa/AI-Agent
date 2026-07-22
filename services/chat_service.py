@@ -73,8 +73,9 @@ class ChatService:
                 func_args = {}
                 try:
                     func_args = json.loads(tc.function.arguments)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"ChatService 解析工具参数失败 (func_name={func_name}): {e}")
+
                 logger.info(f"ChatService Function Calling 触发工具: {func_name}({func_args})")
                 tool_res = call_tool(name=func_name, args=func_args, session_id=session_id, message_id=None)
                 tool_results.append({
