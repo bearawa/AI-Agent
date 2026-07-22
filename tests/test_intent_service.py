@@ -11,7 +11,12 @@ from services.intent_service import IntentService
 
 class TestIntentService(unittest.TestCase):
     def setUp(self):
-        self.intent_service = IntentService()
+        with patch('config.settings.DASHSCOPE_API_KEY', 'test_key'):
+            self.intent_service = IntentService()
+
+            # mock out the client so tests do not actually call OpenAI API unless patched
+            self.mock_client = MagicMock()
+            self.intent_service._client = self.mock_client
 
     def test_rule_based_matching_admission(self):
         # 1. 测试招生规则
@@ -43,14 +48,14 @@ class TestIntentService(unittest.TestCase):
         self.assertEqual(res["confidence"], 1.0)
         self.assertIn("社团", res["reason"])
 
-    @patch("openai.resources.chat.completions.Completions.create")
-    def test_llm_based_matching_other(self, mock_create):
+    def test_llm_based_matching_other(self):
         # 1. 模拟 LLM 返回正常的 JSON
         mock_response = MagicMock()
         mock_choice = MagicMock()
         mock_choice.message.content = '{"intent": "other", "confidence": 0.90, "reason": "打招呼内容，非校园咨询"}'
         mock_response.choices = [mock_choice]
-        mock_create.return_value = mock_response
+
+        self.mock_client.chat.completions.create.return_value = mock_response
 
         # 2. 调用分类（无关键词命中，将触发大模型）
         res = self.intent_service.classify_intent("你好啊！")
@@ -60,14 +65,13 @@ class TestIntentService(unittest.TestCase):
         self.assertEqual(res["confidence"], 0.90)
         self.assertIn("打招呼内容", res["reason"])
 
-    @patch("openai.resources.chat.completions.Completions.create")
-    def test_llm_json_malformed_fallback(self, mock_create):
+    def test_llm_json_malformed_fallback(self):
         # 1. 模拟大模型返回了损坏的 JSON 格式
         mock_response = MagicMock()
         mock_choice = MagicMock()
         mock_choice.message.content = "这里是损坏的JSON，根本不是合法的 json 字符串"
         mock_response.choices = [mock_choice]
-        mock_create.return_value = mock_response
+        self.mock_client.chat.completions.create.return_value = mock_response
 
         # 2. 调用分类，理应优雅捕获并回退至 other
         res = self.intent_service.classify_intent("你好呀，今天过得怎么样？")
@@ -77,14 +81,13 @@ class TestIntentService(unittest.TestCase):
         self.assertEqual(res["confidence"], 0.0)
         self.assertIn("大模型解析分类异常", res["reason"])
 
-    @patch("openai.resources.chat.completions.Completions.create")
-    def test_rule_conflict_tie_breaker(self, mock_create):
+    def test_rule_conflict_tie_breaker(self):
         # 1. 模拟平局时大模型返回
         mock_response = MagicMock()
         mock_choice = MagicMock()
         mock_choice.message.content = '{"intent": "academic", "confidence": 0.85, "reason": "虽然提到宿舍和学籍，但主要是问怎么转学籍，属于学务"}'
         mock_response.choices = [mock_choice]
-        mock_create.return_value = mock_response
+        self.mock_client.chat.completions.create.return_value = mock_response
 
         # 2. “学籍”(academic) 和 “宿舍”(logistics) 冲突平局，触发大模型
         res = self.intent_service.classify_intent("因为宿舍问题想改学籍")

@@ -263,8 +263,8 @@ def render():
                         issues_list = []
                         try:
                             issues_list = json.loads(eval_dict["issues"])
-                        except:
-                            pass
+                        except Exception as e:
+                            logger.error(f"Failed to parse issues JSON: {e}")
                         suggestion = eval_dict["suggestion"]
 
                         with st.expander("⭐ 回答质量评估结果", expanded=False):
