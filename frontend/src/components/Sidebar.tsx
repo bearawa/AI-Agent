@@ -22,7 +22,7 @@ export default function Sidebar({ currentSessionId, onSelectSession, onNewSessio
 
   const fetchSessions = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/sessions");
+      const res = await fetch("/api/sessions");
       const data = await res.json();
       setSessions(data);
     } catch (e) {

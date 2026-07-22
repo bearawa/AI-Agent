@@ -27,7 +27,7 @@ export default function Home() {
 
   const fetchMessages = async (sessionId: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/sessions/${sessionId}/messages`);
+      const res = await fetch(`/api/sessions/${sessionId}/messages`);
       const data = await res.json();
       const mapped = data.map((msg: any) => ({
         id: msg.message_id,
@@ -43,7 +43,7 @@ export default function Home() {
 
   const handleNewSession = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/sessions", {
+      const res = await fetch("/api/sessions", {
         method: "POST",
       });
       const data = await res.json();
@@ -60,7 +60,7 @@ export default function Home() {
     if (!sessionId) {
       // Auto-create session if none exists
       try {
-        const res = await fetch("http://localhost:8000/api/sessions", { method: "POST" });
+        const res = await fetch("/api/sessions", { method: "POST" });
         const data = await res.json();
         sessionId = data.session_id;
         setCurrentSessionId(sessionId);
@@ -88,7 +88,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/api/chat/stream", {
+      const response = await fetch("/api/chat/stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
