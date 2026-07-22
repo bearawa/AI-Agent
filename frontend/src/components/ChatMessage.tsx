@@ -1,6 +1,8 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Bot, User } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export interface MessageData {
   id: string;
@@ -46,10 +48,9 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             </div>
           )}
           <div className="prose dark:prose-invert max-w-none break-words text-black dark:text-[#ececec]">
-            {message.content}
-            {message.isStreaming && (
-              <span className="inline-block w-2 h-4 ml-1 bg-black dark:bg-white animate-pulse" />
-            )}
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message.content + (message.isStreaming ? " ▍" : "")}
+            </ReactMarkdown>
           </div>
 
           {/* Sources */}

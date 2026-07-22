@@ -32,6 +32,14 @@ export default function Sidebar({ currentSessionId, onSelectSession, onNewSessio
 
   return (
     <div className="w-[260px] h-full bg-[#014F7A] text-white flex flex-col p-2">
+      <div className="p-3 mb-2 flex items-center justify-center">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/zh/thumb/3/30/Zhongnan_University_of_Economics_and_Law_logo.svg/800px-Zhongnan_University_of_Economics_and_Law_logo.svg.png"
+          alt="ZUEL Logo"
+          className="h-12 object-contain filter invert"
+        />
+      </div>
+
       <button
         onClick={async () => {
           await onNewSession();
@@ -44,7 +52,7 @@ export default function Sidebar({ currentSessionId, onSelectSession, onNewSessio
       </button>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="text-xs text-gray-500 font-medium mb-2 px-2">对话历史</div>
+        <div className="text-xs text-white/50 font-medium mb-2 px-2">对话历史</div>
         {sessions.map((session) => (
           <button
             key={session.session_id}
