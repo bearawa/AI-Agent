@@ -553,14 +553,9 @@ def save_message_sources(message_id: str, sources: List[Dict[str, Any]]) -> bool
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            for src in sources:
-                source_id = str(uuid.uuid4())
-                cursor.execute('''
-                    INSERT INTO message_sources (
-                        source_id, message_id, doc_id, chunk_id, file_name, page_number, chunk_index, source_text, similarity_distance
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    source_id,
+            data = [
+                (
+                    str(uuid.uuid4()),
                     message_id,
                     src['doc_id'],
                     src['chunk_id'],
@@ -569,7 +564,14 @@ def save_message_sources(message_id: str, sources: List[Dict[str, Any]]) -> bool
                     src['chunk_index'],
                     src['source_text'],
                     src['similarity_distance']
-                ))
+                )
+                for src in sources
+            ]
+            cursor.executemany('''
+                INSERT INTO message_sources (
+                    source_id, message_id, doc_id, chunk_id, file_name, page_number, chunk_index, source_text, similarity_distance
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', data)
             conn.commit()
         return True
     except sqlite3.Error as e:
