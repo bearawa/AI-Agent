@@ -35,8 +35,8 @@ export default function ChatInput({ onSendMessage, isLoading }: ChatInputProps) 
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 bg-white dark:bg-[#212121]">
-      <div className="relative flex items-end w-full border border-gray-300 dark:border-gray-600 rounded-3xl bg-white dark:bg-[#2f2f2f] shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
+    <div className="w-full max-w-3xl mx-auto p-4 bg-white dark:bg-gray-900">
+      <div className="relative flex items-end w-full border border-gray-300 dark:border-gray-600 rounded-3xl bg-white dark:bg-gray-800 shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
         <textarea
           ref={textareaRef}
           value={input}

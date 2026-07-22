@@ -1,7 +1,7 @@
 import json
 import logging
 import uuid
-from typing import List, Optional, Any, Dict
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,8 +11,6 @@ from pydantic import BaseModel
 from config import settings
 from repositories import sqlite_repository
 from services.chat_service import ChatService
-from services.knowledge_admin_service import KnowledgeAdminService
-from services.batch_import_service import BatchImportService
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -31,8 +29,7 @@ app.add_middleware(
 
 # 初始化服务
 chat_service = ChatService()
-admin_service = KnowledgeAdminService()
-batch_service = BatchImportService()
+
 # --- Pydantic 模型 ---
 class ChatMessageRequest(BaseModel):
     session_id: str
@@ -50,14 +47,6 @@ class MessageResponse(BaseModel):
     role: str
     content: str
     created_at: str
-
-class DocumentResponse(BaseModel):
-    doc_id: str
-    file_name: str
-    file_type: str
-    file_size: str
-    status: str
-    uploaded_at: str
 
 # --- API 路由 ---
 
@@ -96,16 +85,6 @@ def get_messages(session_id: str):
         logger.error(f"Failed to get messages for session {session_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/api/sessions/{session_id}")
-def delete_session(session_id: str):
-    """删除指定会话"""
-    try:
-        sqlite_repository.delete_chat_session(session_id)
-        return {"status": "success"}
-    except Exception as e:
-        logger.error(f"Failed to delete session {session_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.post("/api/chat/stream")
 def chat_stream(req: ChatMessageRequest):
     """流式返回大模型的回答"""
@@ -128,40 +107,6 @@ def chat_stream(req: ChatMessageRequest):
             yield f"data: {error_data}\n\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
-
-# --- 管理后台/知识库 路由 ---
-@app.get("/api/admin/documents")
-def list_documents():
-    """获取知识库所有文档"""
-    docs = sqlite_repository.list_documents()
-    return docs
-
-class DeleteDocsRequest(BaseModel):
-    doc_ids: List[str]
-
-@app.post("/api/admin/documents/delete")
-def delete_documents(req: DeleteDocsRequest):
-    """批量删除文档"""
-    try:
-        result = admin_service.delete_documents_batch(req.doc_ids)
-        return result
-    except Exception as e:
-        logger.error(f"Error deleting documents: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/admin/documents/clear_failed")
-def clear_failed_documents():
-    """清理失败导入的文档"""
-    try:
-        result = admin_service.clear_failed_documents()
-        return result
-    except Exception as e:
-        logger.error(f"Error clearing failed documents: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/admin/system_check")
-def system_check():
-    return {"status": "ok", "message": "System check passed via FastAPI"}
 
 if __name__ == "__main__":
     import uvicorn

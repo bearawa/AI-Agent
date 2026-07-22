@@ -159,7 +159,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white dark:bg-[#212121]">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-900">
       <Sidebar
         currentSessionId={currentSessionId}
         onSelectSession={setCurrentSessionId}
@@ -182,7 +182,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white dark:from-[#212121] dark:via-[#212121] to-transparent pt-10">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white dark:from-gray-900 dark:via-gray-900 to-transparent pt-10">
           <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
         </div>
       </main>

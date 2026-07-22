@@ -22,7 +22,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
     <div
       className={cn(
         "w-full py-6 flex justify-center text-base",
-        isUser ? "bg-white dark:bg-[#212121]" : "bg-[#F9F9F9] dark:bg-[#212121]"
+        isUser ? "bg-white dark:bg-gray-900" : "bg-[#F9F9F9] dark:bg-gray-900"
       )}
     >
       <div className="flex w-full max-w-3xl gap-4 px-4">
@@ -31,7 +31,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           <div
             className={cn(
               "w-8 h-8 rounded-sm flex items-center justify-center text-white",
-              isUser ? "bg-gray-300 dark:bg-gray-600" : "bg-[#10a37f]"
+              isUser ? "bg-gray-300 dark:bg-gray-600" : "bg-[var(--color-zuel-cyan)]"
             )}
           >
             {isUser ? <User size={20} /> : <Bot size={20} />}
@@ -57,8 +57,8 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">🔍 信息来源</p>
               {message.sources.map((src, idx) => (
-                <div key={idx} className="bg-white dark:bg-[#2f2f2f] border border-gray-200 dark:border-gray-700 rounded-md p-3 mb-2 text-sm">
-                  <div className="font-medium text-[#10a37f] mb-1">
+                <div key={idx} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3 mb-2 text-sm">
+                  <div className="font-medium text-[var(--color-zuel-cyan)] mb-1">
                     [{idx + 1}] 出处：{src.file_name} (第 {src.page_number} 页)
                   </div>
                   <div className="text-gray-600 dark:text-gray-400 line-clamp-3">

@@ -1,13 +1,26 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --background: #ffffff;
-    --foreground: #0d0d0d;
-  }
+@theme {
+  --color-zuel-blue: #0169A3;
+  --color-zuel-blue-dark: #014F7A;
+  --color-zuel-cyan: #22887D;
+  --color-zuel-cyan-dark: #1A665E;
+}
 
-  .dark {
-    --background: #212121;
-    --foreground: #ececec;
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
   }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
 }
