@@ -8,7 +8,7 @@ test('homepage layout', async ({ page }) => {
   await expect(page.locator('h1', { hasText: 'AIZS' })).toBeVisible();
 
   // Ensure the buttons exist
-  await expect(page.getByText('图书馆几点关门？')).toBeVisible();
+  await expect(page.getByText('图书馆今天几点闭馆？')).toBeVisible();
 
   await page.screenshot({ path: 'screenshots/homepage.png' });
 });
