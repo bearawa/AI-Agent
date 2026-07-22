@@ -104,10 +104,14 @@ class KnowledgeAdminService:
 
         logger.info(f"开始批量删除文档，共 {len(doc_ids)} 个")
 
+        # 批量获取文档信息，避免 N+1 查询问题
+        docs = sqlite_repository.get_documents_by_ids(doc_ids)
+        docs_map = {doc["doc_id"]: doc for doc in docs}
+
         for doc_id in doc_ids:
             file_name = doc_id  # 默认值
             try:
-                doc = sqlite_repository.get_document(doc_id)
+                doc = docs_map.get(doc_id)
                 if not doc:
                     result["failed"] += 1
                     result["items"].append({
