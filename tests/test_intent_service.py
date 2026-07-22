@@ -1,5 +1,4 @@
 import sys
-import os
 import unittest
 from unittest.mock import MagicMock, patch
 from pathlib import Path
@@ -8,6 +7,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from services.intent_service import IntentService
+
 
 class TestIntentService(unittest.TestCase):
     def setUp(self):
@@ -92,6 +92,7 @@ class TestIntentService(unittest.TestCase):
         # 3. 断言
         self.assertEqual(res["intent"], "academic")
         self.assertEqual(res["confidence"], 0.85)
+
 
 if __name__ == "__main__":
     unittest.main()
