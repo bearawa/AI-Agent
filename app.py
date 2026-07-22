@@ -60,19 +60,21 @@ if st.session_state.app_mode == "home":
         .aizs-brand-header {{
             text-align: center;
             padding: {spacing["spacing_xxl"]} {spacing["spacing_lg"]};
-            background: {colors["gradient_primary"]};
+            background: {colors["bg_card"]};
+            border: 1px solid {colors["border"]};
             border-radius: {radius["radius_xl"]};
             margin-bottom: {spacing["spacing_md"]};
-            color: {colors["primary_text"]};
+            color: {colors["text_primary"]};
         }}
         .aizs-brand-header h1 {{
             font-size: 2.5rem;
             font-weight: {typography["font_weight_bold"]};
             margin-bottom: {spacing["spacing_sm"]};
+            color: {colors["text_primary"]};
         }}
         .aizs-brand-header p {{
             font-size: 1.1rem;
-            opacity: 0.9;
+            color: {colors["text_secondary"]};
             margin-bottom: {spacing["spacing_base"]};
         }}
         .aizs-brand-tags {{
@@ -82,11 +84,12 @@ if st.session_state.app_mode == "home":
             gap: {spacing["spacing_sm"]};
         }}
         .aizs-brand-tag {{
-            background: rgba(255, 255, 255, 0.2);
+            background: {colors["bg_hover"]};
+            color: {colors["text_secondary"]};
+            border: 1px solid {colors["border_light"]};
             padding: {spacing["spacing_xs"]} {spacing["spacing_base"]};
             border-radius: {radius["radius_round"]};
             font-size: {typography["font_size_xs"]};
-            backdrop-filter: blur(4px);
         }}
         .aizs-entry-card {{
             background: {colors["bg_card"]};

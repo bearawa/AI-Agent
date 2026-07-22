@@ -1,122 +1,147 @@
 # -*- coding: utf-8 -*-
 """
 AIZS 统一前端样式与组件工具集。
-视觉规范迁移自 KOI-UI：圆角卡片、柔和阴影、CSS 变量、悬停动效、细滚动条。
+视觉规范迁移至 ChatGPT 风格：极简、扁平、无大范围渐变、直角或微圆角、干净的聊天界面。
 """
 import streamlit as st
 
 # ── 设计令牌（Design Tokens）──
-# 迁移自 koi-ui 的主题色与间距体系，适配 Streamlit CSS 注入
+# ChatGPT 风格的主题色与间距体系
 DESIGN_TOKENS = """
 :root {
-    /* 主色系 — 与 koi-ui --el-color-primary 对齐 */
-    --aizs-primary: #409EFF;
-    --aizs-primary-light-3: #79bbff;
-    --aizs-primary-light-5: #a0cfff;
-    --aizs-primary-light-7: #c6e2ff;
-    --aizs-primary-light-8: #d9ecff;
-    --aizs-primary-light-9: #ecf5ff;
-    --aizs-primary-dark-2: #337ecc;
+    /* 主色系 */
+    --aizs-primary: #10a37f;
+    --aizs-primary-light-3: #11b990;
+    --aizs-primary-light-5: #11ce9f;
+    --aizs-primary-light-7: #a0ebd8;
+    --aizs-primary-light-8: #cbf5ea;
+    --aizs-primary-light-9: #e6fcf6;
+    --aizs-primary-dark-2: #0e906f;
 
-    /* 中性色 — koi-ui 文字/边框/背景体系 */
-    --aizs-text-primary: #303133;
-    --aizs-text-regular: #606266;
-    --aizs-text-secondary: #909399;
-    --aizs-text-placeholder: #a8abb2;
-    --aizs-border-base: #dcdfe6;
-    --aizs-border-light: #e4e7ed;
-    --aizs-border-lighter: #ebeef5;
-    --aizs-border-extra-light: #f2f6fc;
-    --aizs-bg-page: #f5f7fa;
+    /* 中性色 */
+    --aizs-text-primary: #0d0d0d;
+    --aizs-text-regular: #404040;
+    --aizs-text-secondary: #5e5e5e;
+    --aizs-text-placeholder: #8e8e8e;
+    --aizs-border-base: #e5e5e5;
+    --aizs-border-light: #ececec;
+    --aizs-border-lighter: #f4f4f4;
+    --aizs-border-extra-light: #f9f9f9;
+    --aizs-bg-page: #ffffff;
     --aizs-bg-overlay: #ffffff;
 
     /* 功能色 */
-    --aizs-success: #67c23a;
-    --aizs-warning: #e6a23c;
-    --aizs-danger: #f56c6c;
-    --aizs-info: #909399;
+    --aizs-success: #10a37f;
+    --aizs-warning: #f59e0b;
+    --aizs-danger: #ef4444;
+    --aizs-info: #3b82f6;
 
     /* 圆角 */
-    --aizs-radius-sm: 6px;
-    --aizs-radius-base: 10px;
-    --aizs-radius-lg: 14px;
-    --aizs-radius-xl: 18px;
+    --aizs-radius-sm: 4px;
+    --aizs-radius-base: 8px;
+    --aizs-radius-lg: 12px;
+    --aizs-radius-xl: 16px;
     --aizs-radius-pill: 20px;
 
-    /* 阴影 */
-    --aizs-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-    --aizs-shadow-base: 0 4px 16px rgba(0, 0, 0, 0.06);
-    --aizs-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.1);
-    --aizs-shadow-primary: 0 4px 14px rgba(64, 158, 255, 0.25);
+    /* 阴影 - 更克制 */
+    --aizs-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --aizs-shadow-base: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --aizs-shadow-hover: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --aizs-shadow-primary: 0 2px 4px rgba(16, 163, 127, 0.2);
 
     /* 过渡 */
-    --aizs-transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    --aizs-transition: all 0.2s ease-in-out;
+}
+
+[data-theme="dark"] {
+    --aizs-text-primary: #ececec;
+    --aizs-text-regular: #b4b4b4;
+    --aizs-text-secondary: #8e8e8e;
+    --aizs-border-base: #424242;
+    --aizs-bg-page: #212121;
+    --aizs-bg-overlay: #2f2f2f;
 }
 """
 
 
 def inject_global_css():
-    """注入全局 CSS 样式。视觉规范完全对齐 KOI-UI。"""
+    """注入全局 CSS 样式。视觉规范对齐 ChatGPT 极简风格。"""
     st.markdown(f"""
     <style>
     {DESIGN_TOKENS}
 
-    /* ===== 滚动条 — koi-ui 6px 细滚动条 ===== */
-    ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+    /* ===== 滚动条 ===== */
+    ::-webkit-scrollbar {{ width: 8px; height: 8px; }}
     ::-webkit-scrollbar-track {{ background: transparent; }}
     ::-webkit-scrollbar-thumb {{
         background: var(--aizs-border-base);
-        border-radius: 6px;
+        border-radius: 4px;
     }}
-    ::-webkit-scrollbar-thumb:hover {{ background: #b6b6b6; }}
+    ::-webkit-scrollbar-thumb:hover {{ background: var(--aizs-text-secondary); }}
 
     /* ===== 全局基础 ===== */
     .stApp {{
-        font-family: Inter, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
-                     "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-family: Söhne, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, Helvetica Neue, Arial, "PingFang SC", "Microsoft YaHei";
         color: var(--aizs-text-primary);
+        background-color: var(--aizs-bg-page);
     }}
     [data-testid="stHeader"] {{ background: transparent; }}
 
-    /* ===== 卡片 — koi-ui 白底圆角柔阴影 ===== */
+    /* ===== Chat 消息样式 - 模拟 ChatGPT ===== */
+    /* 用户消息背景 */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{
+        background-color: var(--aizs-bg-page);
+        padding: 24px;
+    }}
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stMarkdownContainer"] {{
+        background-color: var(--aizs-border-lighter);
+        padding: 12px 20px;
+        border-radius: 24px;
+        display: inline-block;
+        max-width: 80%;
+        margin-left: auto;
+    }}
+
+    /* 助手消息背景 */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {{
+        background-color: var(--aizs-bg-page);
+        padding: 24px;
+    }}
+    [data-testid="stChatMessageAvatarAssistant"] {{
+        background-color: var(--aizs-primary);
+        color: white;
+    }}
+
+    /* ===== 卡片 — 扁平化，去除边框 ===== */
     .aizs-card {{
         background: var(--aizs-bg-overlay);
         border-radius: var(--aizs-radius-base);
         padding: 20px;
         box-shadow: var(--aizs-shadow-sm);
-        border: 1px solid var(--aizs-border-lighter);
+        border: 1px solid var(--aizs-border-base);
         margin-bottom: 16px;
         transition: var(--aizs-transition);
-    }}
-    .aizs-card:hover {{
-        box-shadow: var(--aizs-shadow-hover);
-        transform: translateY(-2px);
     }}
 
     /* ===== 指标卡片 ===== */
     .aizs-metric-card {{
-        background: linear-gradient(135deg, var(--aizs-primary-light-9) 0%, var(--aizs-primary-light-8) 100%);
+        background: var(--aizs-bg-overlay);
         border-radius: var(--aizs-radius-base);
         padding: 20px;
         text-align: center;
-        border: 1px solid var(--aizs-primary-light-7);
+        border: 1px solid var(--aizs-border-base);
         box-shadow: var(--aizs-shadow-sm);
         margin-bottom: 12px;
-        transition: var(--aizs-transition);
-    }}
-    .aizs-metric-card:hover {{
-        box-shadow: var(--aizs-shadow-primary);
-        transform: translateY(-2px);
     }}
     .aizs-metric-card .metric-value {{
         font-size: 1.8rem;
-        font-weight: 800;
-        color: var(--aizs-primary);
+        font-weight: 600;
+        color: var(--aizs-text-primary);
         margin: 0;
         line-height: 1.2;
     }}
     .aizs-metric-card .metric-label {{
-        font-size: 0.82rem;
+        font-size: 0.85rem;
         color: var(--aizs-text-secondary);
         margin-top: 6px;
     }}
@@ -126,21 +151,18 @@ def inject_global_css():
         margin-top: 4px;
     }}
 
-    /* ===== 信息卡片 — koi-ui 左边框卡片 ===== */
+    /* ===== 信息卡片 ===== */
     .aizs-info-card {{
         background: var(--aizs-bg-overlay);
         border-radius: var(--aizs-radius-base);
-        padding: 18px;
-        border-left: 4px solid var(--aizs-primary);
-        box-shadow: var(--aizs-shadow-sm);
+        padding: 16px;
+        border: 1px solid var(--aizs-border-base);
         margin-bottom: 14px;
-        transition: var(--aizs-transition);
     }}
-    .aizs-info-card:hover {{ box-shadow: var(--aizs-shadow-base); }}
     .aizs-info-card h4 {{
         margin: 0 0 8px 0;
         color: var(--aizs-text-primary);
-        font-weight: 700;
+        font-weight: 600;
     }}
     .aizs-info-card p {{
         margin: 0;
@@ -153,12 +175,9 @@ def inject_global_css():
     .aizs-empty-state {{
         text-align: center;
         padding: 48px 20px;
-        background: var(--aizs-bg-page);
-        border-radius: var(--aizs-radius-lg);
-        border: 1px dashed var(--aizs-border-light);
         margin: 16px 0;
     }}
-    .aizs-empty-state .empty-icon {{ font-size: 2.8rem; margin-bottom: 14px; }}
+    .aizs-empty-state .empty-icon {{ font-size: 2.8rem; margin-bottom: 14px; opacity: 0.5; }}
     .aizs-empty-state .empty-title {{
         font-size: 1.1rem;
         font-weight: 600;
@@ -166,81 +185,49 @@ def inject_global_css():
         margin-bottom: 6px;
     }}
     .aizs-empty-state .empty-desc {{
-        font-size: 0.88rem;
+        font-size: 0.9rem;
         color: var(--aizs-text-secondary);
     }}
 
-    /* ===== 提示框 — koi-ui 功能色边框卡片 ===== */
+    /* ===== 提示框 ===== */
+    .aizs-warning-box, .aizs-success-box, .aizs-error-box {{
+        border-radius: var(--aizs-radius-base);
+        padding: 12px 16px;
+        margin: 12px 0;
+        font-size: 0.9rem;
+        border: 1px solid;
+    }}
     .aizs-warning-box {{
         background: #fdf6ec;
-        border-left: 4px solid var(--aizs-warning);
-        border-radius: var(--aizs-radius-sm);
-        padding: 14px 18px;
-        margin: 12px 0;
+        border-color: #f3d19e;
         color: #b88230;
-        font-size: 0.9rem;
     }}
     .aizs-success-box {{
         background: #f0f9eb;
-        border-left: 4px solid var(--aizs-success);
-        border-radius: var(--aizs-radius-sm);
-        padding: 14px 18px;
-        margin: 12px 0;
+        border-color: #c2e7b0;
         color: #529b2e;
-        font-size: 0.9rem;
     }}
     .aizs-error-box {{
         background: #fef0f0;
-        border-left: 4px solid var(--aizs-danger);
-        border-radius: var(--aizs-radius-sm);
-        padding: 14px 18px;
-        margin: 12px 0;
+        border-color: #fbc4c4;
         color: #c45656;
-        font-size: 0.9rem;
-    }}
-
-    /* ===== 来源引用卡片 ===== */
-    .aizs-source-box {{
-        background: var(--aizs-primary-light-9);
-        border-left: 4px solid var(--aizs-primary);
-        padding: 12px 14px;
-        border-radius: var(--aizs-radius-sm);
-        margin-bottom: 10px;
-        font-size: 0.88rem;
-    }}
-    .aizs-source-box strong {{ color: var(--aizs-primary-dark-2); }}
-    .aizs-source-box .source-text {{
-        color: var(--aizs-text-regular);
-        font-size: 0.83rem;
-        margin-top: 4px;
     }}
 
     /* ===== 页面标题区 ===== */
     .aizs-page-header {{
         padding: 20px 0 16px 0;
         margin-bottom: 20px;
-        border-bottom: 1px solid var(--aizs-border-lighter);
+        border-bottom: 1px solid var(--aizs-border-base);
     }}
     .aizs-page-header h2 {{
         color: var(--aizs-text-primary);
-        font-weight: 800;
+        font-weight: 700;
         margin: 0 0 6px 0;
     }}
     .aizs-page-header .subtitle {{
-        color: var(--aizs-text-regular);
+        color: var(--aizs-text-secondary);
         font-size: 0.95rem;
         margin: 0;
-    }}
-    .aizs-page-header .badge {{
-        display: inline-block;
-        background: var(--aizs-primary);
-        color: white;
-        padding: 3px 10px;
-        border-radius: var(--aizs-radius-pill);
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-left: 8px;
-        vertical-align: middle;
     }}
 
     /* ===== 页脚 ===== */
@@ -249,144 +236,78 @@ def inject_global_css():
         padding: 16px 0;
         color: var(--aizs-text-placeholder);
         font-size: 0.8rem;
-        border-top: 1px solid var(--aizs-border-lighter);
+        border-top: 1px solid var(--aizs-border-base);
         margin-top: 30px;
     }}
 
-    /* ===== 入口卡片 — koi-ui 悬停提升动效 ===== */
+    /* ===== 入口卡片 ===== */
     .aizs-entry-card {{
         background: var(--aizs-bg-overlay);
-        border-radius: var(--aizs-radius-xl);
-        padding: 28px;
+        border-radius: var(--aizs-radius-lg);
+        padding: 24px;
         min-height: 260px;
-        box-shadow: var(--aizs-shadow-base);
-        border: 1px solid var(--aizs-border-lighter);
+        border: 1px solid var(--aizs-border-base);
         transition: var(--aizs-transition);
         height: 100%;
     }}
     .aizs-entry-card:hover {{
-        box-shadow: var(--aizs-shadow-hover);
-        transform: translateY(-4px);
+        border-color: var(--aizs-text-placeholder);
     }}
-    .aizs-entry-card.user-card {{ border-top: 4px solid var(--aizs-primary); }}
-    .aizs-entry-card.admin-card {{ border-top: 4px solid var(--aizs-warning); }}
-    .aizs-entry-card h3 {{ margin: 0 0 12px 0; font-weight: 700; color: var(--aizs-text-primary); }}
+    .aizs-entry-card h3 {{ margin: 0 0 12px 0; font-weight: 600; color: var(--aizs-text-primary); }}
     .aizs-entry-card p {{
         color: var(--aizs-text-regular);
-        font-size: 0.9rem;
-        line-height: 1.6;
-        margin: 0 0 10px 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin: 0 0 12px 0;
     }}
-    .aizs-entry-card ul {{ padding-left: 18px; margin: 0; }}
+    .aizs-entry-card ul {{ padding-left: 20px; margin: 0; }}
     .aizs-entry-card ul li {{
         color: var(--aizs-text-regular);
-        font-size: 0.85rem;
-        line-height: 1.6;
+        font-size: 0.9rem;
+        line-height: 1.5;
     }}
 
-    /* ===== 功能标签 — koi-ui 胶囊标签 ===== */
-    .aizs-feature-tag {{
-        display: inline-block;
-        background: rgba(64, 158, 255, 0.08);
-        color: var(--aizs-primary);
-        padding: 6px 14px;
-        border-radius: var(--aizs-radius-pill);
-        font-size: 0.82rem;
-        font-weight: 500;
-        margin: 4px;
-        border: 1px solid rgba(64, 158, 255, 0.15);
-        transition: var(--aizs-transition);
-    }}
-    .aizs-feature-tag:hover {{
-        background: rgba(64, 158, 255, 0.15);
-        transform: translateY(-2px);
-    }}
-
-    /* ===== 品牌头部 — koi-ui 渐变 + 柔阴影 ===== */
-    .aizs-brand-header {{
-        text-align: center;
-        padding: 2.8rem 1rem;
-        background: linear-gradient(135deg, var(--aizs-primary) 0%, var(--aizs-primary-dark-2) 100%);
-        border-radius: var(--aizs-radius-xl);
-        margin-bottom: 2rem;
-        color: white;
-        box-shadow: 0 10px 30px rgba(64, 158, 255, 0.25);
-    }}
-    .aizs-brand-header h1 {{
-        color: white;
-        margin: 0 0 8px 0;
-        font-weight: 800;
-        font-size: 2rem;
-    }}
-    .aizs-brand-header p {{
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 1.1rem;
-        margin: 0;
-    }}
-    .aizs-brand-header .brand-tags {{ margin-top: 14px; }}
-    .aizs-brand-header .brand-tag {{
-        display: inline-block;
-        background: rgba(255, 255, 255, 0.15);
-        color: white;
-        padding: 4px 12px;
-        border-radius: var(--aizs-radius-pill);
-        font-size: 0.78rem;
-        margin: 3px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        backdrop-filter: blur(8px);
-    }}
-
-    /* ===== 质量徽章 ===== */
-    .aizs-quality-badge {{
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: var(--aizs-radius-pill);
-        font-size: 0.75rem;
-        font-weight: bold;
-        color: white;
-    }}
-    .aizs-quality-badge.high {{ background-color: var(--aizs-success); }}
-    .aizs-quality-badge.low {{ background-color: var(--aizs-danger); }}
-
-    /* ===== 状态标签 ===== */
-    .aizs-status-tag {{
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: var(--aizs-radius-sm);
-        font-size: 0.75rem;
-        font-weight: bold;
-    }}
-    .aizs-status-tag.success {{ background: #f0f9eb; color: #529b2e; }}
-    .aizs-status-tag.fail {{ background: #fef0f0; color: #c45656; }}
-    .aizs-status-tag.warning {{ background: #fdf6ec; color: #b88230; }}
-    .aizs-status-tag.info {{ background: #ecf5ff; color: #409eff; }}
-
-    /* ===== Streamlit 原生组件覆写 — koi-ui 风格 ===== */
+    /* ===== Streamlit 原生组件覆写 ===== */
     .stButton > button {{
         border-radius: var(--aizs-radius-base) !important;
-        font-weight: 600 !important;
-        transition: var(--aizs-transition) !important;
+        font-weight: 500 !important;
         border: 1px solid var(--aizs-border-base) !important;
+        background-color: var(--aizs-bg-overlay) !important;
+        color: var(--aizs-text-primary) !important;
     }}
     .stButton > button:hover {{
-        transform: translateY(-1px) !important;
-        box-shadow: var(--aizs-shadow-base) !important;
+        background-color: var(--aizs-border-lighter) !important;
+        border-color: var(--aizs-border-base) !important;
+        color: var(--aizs-text-primary) !important;
     }}
     .stButton > button[kind="primary"],
     .stButton > button[data-testid="stBaseButton-primary"] {{
-        box-shadow: var(--aizs-shadow-primary) !important;
+        background-color: var(--aizs-primary) !important;
+        color: white !important;
+        border-color: var(--aizs-primary) !important;
+    }}
+    .stButton > button[kind="primary"]:hover,
+    .stButton > button[data-testid="stBaseButton-primary"]:hover {{
+        background-color: var(--aizs-primary-dark-2) !important;
+        border-color: var(--aizs-primary-dark-2) !important;
     }}
 
     /* 输入框圆角 */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea {{
         border-radius: var(--aizs-radius-base) !important;
+        border-color: var(--aizs-border-base) !important;
+    }}
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus {{
+        border-color: var(--aizs-primary) !important;
+        box-shadow: 0 0 0 1px var(--aizs-primary) !important;
     }}
 
     /* 侧边栏样式 */
     [data-testid="stSidebar"] {{
-        background: var(--aizs-bg-page);
-        border-right: 1px solid var(--aizs-border-lighter);
+        background-color: var(--aizs-border-extra-light);
+        border-right: none;
     }}
 
     /* Expander 圆角 */
@@ -404,20 +325,19 @@ def inject_global_css():
         background: var(--aizs-bg-overlay);
         padding: 16px;
         border-radius: var(--aizs-radius-base);
-        border: 1px solid var(--aizs-border-lighter);
-        box-shadow: var(--aizs-shadow-sm);
+        border: 1px solid var(--aizs-border-base);
+        box-shadow: none;
     }}
 
     /* DataFrame 表头 */
     .stDataFrame table thead th {{
-        font-weight: 600 !important;
+        font-weight: 500 !important;
         color: var(--aizs-text-primary) !important;
+        border-bottom: 1px solid var(--aizs-border-base) !important;
     }}
 
     /* ===== 响应式 ===== */
     @media (max-width: 768px) {{
-        .aizs-brand-header h1 {{ font-size: 1.5rem; }}
-        .aizs-brand-header p {{ font-size: 0.95rem; }}
         .aizs-entry-card {{ min-height: auto; padding: 20px; }}
         .aizs-metric-card .metric-value {{ font-size: 1.4rem; }}
     }}
