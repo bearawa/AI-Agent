@@ -11,7 +11,7 @@ from repositories import sqlite_repository
 from services.agent_service import AgentService
 from utils.logger import logger
 from utils.display_utils import format_confidence
-from utils.ui_utils import render_page_header, render_empty_state
+from utils.ui_utils import render_page_header
 from themes.theme_manager import theme_manager
 
 # 获取主题配置
