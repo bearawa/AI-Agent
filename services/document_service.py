@@ -43,9 +43,7 @@ class DocumentService:
         解析 PDF 文件，按页码进行段落切片以保留物理页码信息。
         优先使用 pdfplumber（兼容性更强），失败时回退到 pypdf。
         """
-        chunks = []
-        chunk_index = 0
-        empty_page_count = 0
+
 
         # 优先尝试 pdfplumber（对复杂 PDF、嵌入式字体等兼容性更好）
         try:
@@ -53,22 +51,7 @@ class DocumentService:
                 total_pages = len(pdf.pages)
                 logger.info(f"PDF 文件共有 {total_pages} 页（pdfplumber）")
 
-                for i, page in enumerate(pdf.pages):
-                    page_number = i + 1
-                    page_text = page.extract_text()
-                    if not page_text or not page_text.strip():
-                        empty_page_count += 1
-                        logger.debug(f"PDF 第 {page_number} 页无文本内容，跳过")
-                        continue
-
-                    page_chunks = self.splitter.split_text(page_text)
-                    for pc in page_chunks:
-                        chunks.append({
-                            "text": pc,
-                            "page_number": page_number,
-                            "chunk_index": chunk_index
-                        })
-                        chunk_index += 1
+                chunks, empty_page_count = self._process_pdf_pages(pdf.pages)
 
             logger.info(f"PDF 解析完成（pdfplumber），共切分为 {len(chunks)} 个切片")
 
@@ -90,35 +73,47 @@ class DocumentService:
         """
         使用 pypdf 回退解析 PDF 文件。
         """
-        chunks = []
-        chunk_index = 0
-        empty_page_count = 0
+
         try:
             reader = pypdf.PdfReader(file_path)
             total_pages = len(reader.pages)
             logger.info(f"PDF 文件共有 {total_pages} 页（pypdf 回退）")
 
-            for i, page in enumerate(reader.pages):
-                page_number = i + 1
-                page_text = page.extract_text()
-                if not page_text or not page_text.strip():
-                    empty_page_count += 1
-                    logger.debug(f"PDF 第 {page_number} 页无文本内容，跳过")
-                    continue
-
-                page_chunks = self.splitter.split_text(page_text)
-                for pc in page_chunks:
-                    chunks.append({
-                        "text": pc,
-                        "page_number": page_number,
-                        "chunk_index": chunk_index
-                    })
-                    chunk_index += 1
+            chunks, empty_page_count = self._process_pdf_pages(reader.pages)
 
             logger.info(f"PDF 解析完成（pypdf），共切分为 {len(chunks)} 个切片")
         except Exception as e:
             logger.error(f"pypdf 解析也失败: {e}")
             raise e
+        return chunks, empty_page_count
+
+
+    def _process_pdf_pages(self, pages) -> tuple:
+        """
+        提取并处理 PDF 页面内容的公共方法。
+        返回 (chunks, empty_page_count)
+        """
+        chunks = []
+        chunk_index = 0
+        empty_page_count = 0
+
+        for i, page in enumerate(pages):
+            page_number = i + 1
+            page_text = page.extract_text()
+            if not page_text or not page_text.strip():
+                empty_page_count += 1
+                logger.debug(f"PDF 第 {page_number} 页无文本内容，跳过")
+                continue
+
+            page_chunks = self.splitter.split_text(page_text)
+            for pc in page_chunks:
+                chunks.append({
+                    "text": pc,
+                    "page_number": page_number,
+                    "chunk_index": chunk_index
+                })
+                chunk_index += 1
+
         return chunks, empty_page_count
 
     def _parse_docx(self, file_path: str) -> List[Dict[str, Any]]:
