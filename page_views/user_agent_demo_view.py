@@ -323,6 +323,7 @@ def render():
                             icon = "❓"
                         st.markdown(f"**{icon} 步骤 {t['step_index']}: {t['step_title']}** - *{t['step_detail']}*")
 
+            intent_placeholder = st.empty()
             text_placeholder = st.empty()
             text_placeholder.markdown(f"<span style='color:{colors['text_tertiary']};'>Agent 正在深入推理中，请稍候...</span>", unsafe_allow_html=True)
             sources_placeholder = st.empty()
@@ -336,7 +337,9 @@ def render():
 
                 for chunk in agent_flow:
                     if chunk["type"] == "intent":
-                        pass
+                        intent_data = chunk["data"]
+                        conf_text = format_confidence(intent_data.get("confidence"))
+                        intent_placeholder.markdown(f'<div class="message-intent">🎯 识别到意图：{intent_data["intent_name"]}咨询 (置信度: {conf_text})</div>', unsafe_allow_html=True)
                     elif chunk["type"] == "trace":
                         trace_list.append(chunk["data"])
                         render_traces()
