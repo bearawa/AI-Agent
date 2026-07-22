@@ -1,0 +1,77 @@
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [intents] 注册成功: general
+[2026-07-22 08:30:16] [INFO] [framework.py:120]: 添加路由: general -> rag_service
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [intents] 注册成功: admission
+[2026-07-22 08:30:16] [INFO] [framework.py:120]: 添加路由: admission -> rag_service
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [intents] 注册成功: academic
+[2026-07-22 08:30:16] [INFO] [framework.py:120]: 添加路由: academic -> rag_service
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [intents] 注册成功: logistics
+[2026-07-22 08:30:16] [INFO] [framework.py:120]: 添加路由: logistics -> rag_service
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [intents] 注册成功: campus_life
+[2026-07-22 08:30:16] [INFO] [framework.py:120]: 添加路由: campus_life -> rag_service
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [intents] 注册成功: weather
+[2026-07-22 08:30:16] [INFO] [framework.py:120]: 添加路由: weather -> amap_service
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [intents] 注册成功: navigation
+[2026-07-22 08:30:16] [INFO] [framework.py:120]: 添加路由: navigation -> amap_service
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [intents] 注册成功: other
+[2026-07-22 08:30:16] [INFO] [framework.py:120]: 添加路由: other -> rag_service
+[2026-07-22 08:30:16] [INFO] [intent_mapper.py:67]: 意图映射器初始化完成
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 教学楼
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 文溯楼
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 图书馆
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 南湖图书馆
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 食堂
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 西苑食堂
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 体育馆
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 南湖体育馆
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 宿舍
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 西苑宿舍
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 校门口
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 南门
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 北门
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 行政楼
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 实验楼
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 操场
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: 南操场
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_南京
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_北京
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_上海
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_广州
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_深圳
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_杭州
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_成都
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_武汉
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_西安
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_苏州
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_无锡
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_重庆
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_天津
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_长沙
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_郑州
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_合肥
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_济南
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_青岛
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_大连
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_厦门
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_福州
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_宁波
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_南京财经
+[2026-07-22 08:30:16] [INFO] [framework.py:32]: [locations] 注册成功: city_中南财经
+[2026-07-22 08:30:16] [INFO] [location_mapper.py:88]: 位置映射器初始化完成
+[2026-07-22 08:30:17] [INFO] [framework.py:32]: [tools] 注册成功: get_weather_amap
+[2026-07-22 08:30:17] [INFO] [tool_mapper.py:73]: 注册工具: get_weather_amap -> 高德天气查询
+[2026-07-22 08:30:17] [INFO] [framework.py:32]: [tools] 注册成功: search_nearby_poi
+[2026-07-22 08:30:17] [INFO] [tool_mapper.py:73]: 注册工具: search_nearby_poi -> 周边设施搜索
+[2026-07-22 08:30:17] [INFO] [framework.py:32]: [tools] 注册成功: plan_route
+[2026-07-22 08:30:17] [INFO] [tool_mapper.py:73]: 注册工具: plan_route -> 路线规划导航
+[2026-07-22 08:30:17] [INFO] [framework.py:32]: [tools] 注册成功: search_campus_knowledge
+[2026-07-22 08:30:17] [INFO] [tool_mapper.py:73]: 注册工具: search_campus_knowledge -> 校园知识库检索
+INFO:     Started server process [150165]
+INFO:     Waiting for application startup.
+INFO:api:Initializing SQLite database on startup...
+[2026-07-22 08:30:17] [INFO] [sqlite_repository.py:29]: 正在初始化 SQLite 数据库...
+INFO:campus_service:正在初始化 SQLite 数据库...
+[2026-07-22 08:30:17] [INFO] [sqlite_repository.py:196]: SQLite 数据库初始化与增量迁移完成
+INFO:campus_service:SQLite 数据库初始化与增量迁移完成
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:48600 - "GET /api/admin/status HTTP/1.1" 200 OK
