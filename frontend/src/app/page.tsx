@@ -144,6 +144,10 @@ export default function Home() {
                     newSources = data.data;
                   } else if (data.type === 'intent') {
                     newIntent = data.data.intent_name;
+                  } else if (data.type === 'error') {
+                    newContent += '\n\n**[Error]:** ' + data.data;
+                  } else if (data.type === 'error') {
+                    newContent += '\n\n[Error]: ' + data.data;
                   }
 
                   return {
