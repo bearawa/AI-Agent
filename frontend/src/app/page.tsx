@@ -170,7 +170,7 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <h1 className="text-4xl font-bold text-gray-300 dark:text-gray-600">AIZS 智能咨询</h1>
+              <div className="flex flex-col items-center gap-6"><img src="https://upload.wikimedia.org/wikipedia/zh/thumb/3/30/Zhongnan_University_of_Economics_and_Law_logo.svg/800px-Zhongnan_University_of_Economics_and_Law_logo.svg.png" alt="ZUEL Logo" className="h-24 opacity-50 grayscale dark:grayscale-0 dark:opacity-80" /><h1 className="text-4xl font-bold text-gray-300 dark:text-gray-600">AIZS 智能咨询</h1></div>
             </div>
           ) : (
             <div className="pb-32">
