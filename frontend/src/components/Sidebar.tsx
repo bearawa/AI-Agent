@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { MessageSquare, Plus, Trash2 } from "lucide-react";
+import React, { useEffect, useState, useCallback } from "react";
+import { MessageSquare, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Session {
@@ -16,11 +16,7 @@ interface SidebarProps {
 export default function Sidebar({ currentSessionId, onSelectSession, onNewSession }: SidebarProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
-
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     try {
       const res = await fetch("/api/sessions");
       const data = await res.json();
@@ -28,7 +24,11 @@ export default function Sidebar({ currentSessionId, onSelectSession, onNewSessio
     } catch (e) {
       console.error("Failed to fetch sessions", e);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
 
   return (
     <div className="w-[280px] h-full bg-[#014F7A] text-white flex flex-col p-4 shadow-xl z-10">
