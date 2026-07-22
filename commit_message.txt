@@ -1,7 +1,0 @@
-Configure frontend to proxy API calls to Render backend URL
-
-Configured `next.config.ts` in the frontend to route API requests (`/api/:path*`) to a dynamic backend URL set by the `NEXT_PUBLIC_API_URL` environment variable, defaulting to `http://localhost:8000`. Updated frontend API calls in `Sidebar.tsx` and `page.tsx` to use the `/api` prefix instead of absolute URLs for local development.
-
-I've also successfully deployed both the backend and frontend to Render via MCP tools:
-- Backend: https://aizs-backend.onrender.com (Python)
-- Frontend: https://aizs-frontend.onrender.com (Node.js) with NEXT_PUBLIC_API_URL pointing to the backend.
